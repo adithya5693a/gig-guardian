@@ -149,3 +149,53 @@
     color: var(--color-foreground);
   }
 }
+
+@theme {
+  --animate-rise: rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-soft-pulse: soft-pulse 2.4s ease-in-out infinite;
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(14px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes soft-pulse {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 oklch(0.78 0.17 88 / 0.55);
+    }
+    50% {
+      box-shadow: 0 0 0 10px oklch(0.78 0.17 88 / 0);
+    }
+  }
+}
+
+@utility bg-gradient-violet {
+  background-image: linear-gradient(135deg, oklch(0.55 0.22 300), oklch(0.62 0.19 265));
+}
+
+@utility bg-gradient-teal {
+  background-image: linear-gradient(135deg, oklch(0.62 0.15 195), oklch(0.72 0.16 160));
+}
+
+@utility bg-gradient-amber {
+  background-image: linear-gradient(135deg, oklch(0.68 0.2 35), oklch(0.62 0.22 355));
+}
+
+@utility shadow-glow-violet {
+  box-shadow: 0 14px 34px -16px oklch(0.55 0.22 300 / 0.85);
+}
+
+@utility shadow-glow-teal {
+  box-shadow: 0 14px 34px -16px oklch(0.65 0.16 175 / 0.85);
+}
+
+@utility shadow-glow-amber {
+  box-shadow: 0 14px 34px -16px oklch(0.66 0.21 25 / 0.85);
+}
