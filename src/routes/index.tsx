@@ -173,7 +173,7 @@ function ThisWeeksInsight() {
     if (thisWeekJobs.length >= 3 && !busy) {
       void generate();
     }
-  }, [thisWeekJobs.length, generate, busy]);
+  }, [thisWeekJobs.length, generate]);
 
   if (thisWeekJobs.length < 3) {
     return (
