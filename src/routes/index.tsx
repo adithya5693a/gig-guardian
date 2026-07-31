@@ -112,9 +112,9 @@ Data context:
 - Earnings change: ${earningsChange.toFixed(1)}%`;
 
         const answer = await askGemini(geminiApiKey, geminiModel, prompt);
-        setInsight(answer ?? fallback);
+        setInsight(answer);
       } catch {
-        setInsight(fallback);
+        setInsight("AI insight unavailable right now");
       }
       setBusy(false);
     };

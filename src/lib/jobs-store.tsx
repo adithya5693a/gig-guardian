@@ -92,12 +92,22 @@ const JobsContext = createContext<JobsContextValue | null>(null);
 
 const storageKey = "gigshield-state-v2";
 
+const getApiKey = () => {
+  if (typeof process !== "undefined" && process.env && process.env.GEMINI_API_KEY) {
+    return process.env.GEMINI_API_KEY;
+  }
+  if (import.meta.env && import.meta.env.VITE_GEMINI_API_KEY) {
+    return import.meta.env.VITE_GEMINI_API_KEY;
+  }
+  return "";
+};
+
 export function JobsProvider({ children }: { children: ReactNode }) {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [jobsToLog, setJobsToLog] = useState(1);
   const [setupComplete, setSetupComplete] = useState(false);
   const [savingsGoal, setSavingsGoal] = useState(5000);
-  const [geminiApiKey, setGeminiApiKey] = useState(() => import.meta.env.VITE_GEMINI_API_KEY ?? "");
+  const [geminiApiKey, setGeminiApiKey] = useState(() => getApiKey());
   const [geminiModel, setGeminiModel] = useState(
     () => import.meta.env.VITE_GEMINI_MODEL ?? "gemini-2.0-flash",
   );

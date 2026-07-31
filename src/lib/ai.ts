@@ -1,22 +1,40 @@
 import { fairness, type Job } from "./jobs-store";
 
+export function getGeminiApiKey(): string {
+  // Check process.env.GEMINI_API_KEY first (populated by vite define or node server)
+  if (typeof process !== "undefined" && process.env && process.env.GEMINI_API_KEY) {
+    return process.env.GEMINI_API_KEY;
+  }
+  // Fallback to VITE_ prefix standard
+  if (import.meta.env && import.meta.env.VITE_GEMINI_API_KEY) {
+    return import.meta.env.VITE_GEMINI_API_KEY;
+  }
+  return "";
+}
+
 export async function askGemini(apiKey: string, model: string, prompt: string) {
-  if (!apiKey.trim()) return null;
+  const activeKey = apiKey.trim() || getGeminiApiKey();
+  if (!activeKey) {
+    throw new Error("AI insight unavailable right now");
+  }
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(activeKey)}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: prompt }] }] }),
     },
   );
-  if (!response.ok) throw new Error(`Gemini request failed (${response.status})`);
+  if (!response.ok) throw new Error("AI insight unavailable right now");
   const data = await response.json();
-  return (
-    data.candidates?.[0]?.content?.parts
-      ?.map((part: { text?: string }) => part.text ?? "")
-      .join("") ?? null
-  );
+  const answer = data.candidates?.[0]?.content?.parts
+    ?.map((part: { text?: string }) => part.text ?? "")
+    .join("") ?? null;
+  
+  if (!answer) {
+    throw new Error("AI insight unavailable right now");
+  }
+  return answer;
 }
 
 export function localAssistant(question: string, jobs: Job[]) {

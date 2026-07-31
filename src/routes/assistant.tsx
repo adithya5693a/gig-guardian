@@ -60,12 +60,11 @@ function Assistant() {
     setBusy(true);
     try {
       const prompt = `You are GigShield, a kind AI companion for gig workers. Use simple language, never present an estimate as legal proof, and give practical next steps. Worker job data: ${jobsContext(jobs)}. OCR text from the worker's screenshot: ${ocrText || "none"}. Extracted screenshot values: ${JSON.stringify(ocrValues)}. Worker question: ${text}. Answer in under 150 words.`;
-      const answer =
-        (await askGemini(geminiApiKey, geminiModel, prompt)) ?? localAssistant(text, jobs);
+      const answer = await askGemini(geminiApiKey, geminiModel, prompt);
       setMessages((prev) => [...prev, { role: "assistant", text: answer }]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Gemini could not answer right now.");
-      setMessages((prev) => [...prev, { role: "assistant", text: localAssistant(text, jobs) }]);
+      setError(err instanceof Error ? err.message : "AI companion unavailable right now");
+      setMessages((prev) => [...prev, { role: "assistant", text: "AI companion unavailable right now" }]);
     } finally {
       setBusy(false);
     }
