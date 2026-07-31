@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
   Clock,
@@ -81,62 +81,60 @@ function ThisWeeksInsight() {
   const thisWeekJobs = useMemo(() => jobsThisWeek(allJobs), [allJobs]);
   const lastWeekJobs = useMemo(() => jobsLastWeek(allJobs), [allJobs]);
 
-  const generate = useMemo(() => {
-    return async () => {
-      if (thisWeekJobs.length < 3) return;
-      setBusy(true);
+  const generate = useCallback(async () => {
+    if (thisWeekJobs.length < 3) return;
+    setBusy(true);
 
-      const thisWeekEarnings = thisWeekJobs.reduce((s, j) => s + j.fare, 0);
-      const lastWeekEarnings = lastWeekJobs.reduce((s, j) => s + j.fare, 0);
-      const earningsChange =
-        lastWeekEarnings > 0 ? ((thisWeekEarnings - lastWeekEarnings) / lastWeekEarnings) * 100 : 0;
+    const thisWeekEarnings = thisWeekJobs.reduce((s, j) => s + j.fare, 0);
+    const lastWeekEarnings = lastWeekJobs.reduce((s, j) => s + j.fare, 0);
+    const earningsChange =
+      lastWeekEarnings > 0 ? ((thisWeekEarnings - lastWeekEarnings) / lastWeekEarnings) * 100 : 0;
 
-      // Find best/worst jobs by rate per km
-      const jobsWithRates = thisWeekJobs.map((j) => ({
-        job: j,
-        rate: j.distance > 0 ? j.fare / j.distance : 0,
-      }));
-      jobsWithRates.sort((a, b) => b.rate - a.rate);
-      const bestJob = jobsWithRates[0]?.job;
-      const worstJob = jobsWithRates[jobsWithRates.length - 1]?.job;
+    // Find best/worst jobs by rate per km
+    const jobsWithRates = thisWeekJobs.map((j) => ({
+      job: j,
+      rate: j.distance > 0 ? j.fare / j.distance : 0,
+    }));
+    jobsWithRates.sort((a, b) => b.rate - a.rate);
+    const bestJob = jobsWithRates[0]?.job;
+    const worstJob = jobsWithRates[jobsWithRates.length - 1]?.job;
 
-      // Local fallback in case Gemini API is not configured or fails
-      const earningsMessage =
-        lastWeekEarnings > 0
-          ? `You earned ₹${thisWeekEarnings.toFixed(0)} this week (${earningsChange >= 0 ? "+" : ""}${earningsChange.toFixed(1)}% compared to last week).`
-          : `You earned ₹${thisWeekEarnings.toFixed(0)} across ${thisWeekJobs.length} jobs this week.`;
+    // Local fallback in case Gemini API is not configured or fails
+    const earningsMessage =
+      lastWeekEarnings > 0
+        ? `You earned ₹${thisWeekEarnings.toFixed(0)} this week (${earningsChange >= 0 ? "+" : ""}${earningsChange.toFixed(1)}% compared to last week).`
+        : `You earned ₹${thisWeekEarnings.toFixed(0)} across ${thisWeekJobs.length} jobs this week.`;
 
-      const bestWorstMessage =
-        bestJob && worstJob
-          ? ` Your best-paying ride was on ${bestJob.platform} (₹${(bestJob.fare / bestJob.distance).toFixed(1)}/km), while your lowest rate was on ${worstJob.platform} (₹${(worstJob.fare / worstJob.distance).toFixed(1)}/km).`
-          : "";
+    const bestWorstMessage =
+      bestJob && worstJob
+        ? ` Your best-paying ride was on ${bestJob.platform} (₹${(bestJob.fare / bestJob.distance).toFixed(1)}/km), while your lowest rate was on ${worstJob.platform} (₹${(worstJob.fare / worstJob.distance).toFixed(1)}/km).`
+        : "";
 
-      const flaggedCount = thisWeekJobs.filter((j) => fairness(j).flagged).length;
-      const underpayMessage =
-        flaggedCount > 0
-          ? ` ${flaggedCount} of your jobs had potential underpayment; review night shifts and Zomato/Swiggy rates.`
-          : " All your logged jobs this week matched or exceeded the fair benchmarks!";
+    const flaggedCount = thisWeekJobs.filter((j) => fairness(j).flagged).length;
+    const underpayMessage =
+      flaggedCount > 0
+        ? ` ${flaggedCount} of your jobs had potential underpayment; review night shifts and Zomato/Swiggy rates.`
+        : " All your logged jobs this week matched or exceeded the fair benchmarks!";
 
-      const fallback = `${earningsMessage}${bestWorstMessage}${underpayMessage}`;
+    const fallback = `${earningsMessage}${bestWorstMessage}${underpayMessage}`;
 
-      try {
-        const prompt = `You are GigShield, an AI coach for gig workers. Based on the data below, write a supportive, practical 2-4 sentence summary of the worker's week. Identify patterns: point out if underpayments are clustered at specific times (like night shifts) or specific platforms/vehicles, compare earnings to last week, and mention what made the best-paying ride different from the worst-paying ride (platform, distance, or time of day). Avoid generic descriptions. Speak directly to the worker in a friendly, helpful coaching tone.
+    try {
+      const prompt = `You are GigShield, an AI coach for gig workers. Based on the data below, write a supportive, practical 2-4 sentence summary of the worker's week. Identify patterns: point out if underpayments are clustered at specific times (like night shifts) or specific platforms/vehicles, compare earnings to last week, and mention what made the best-paying ride different from the worst-paying ride (platform, distance, or time of day). Avoid generic descriptions. Speak directly to the worker in a friendly, helpful coaching tone.
 Data context:
 - This week's jobs: ${JSON.stringify(thisWeekJobs.map((j) => ({ platform: j.platform, vehicle: j.vehicleType, fare: j.fare, distance: j.distance, rate: j.distance > 0 ? j.fare / j.distance : 0, flagged: fairness(j).flagged, hour: new Date(j.datetime).getHours() })))}
 - Last week's jobs: ${JSON.stringify(lastWeekJobs.map((j) => ({ platform: j.platform, vehicle: j.vehicleType, fare: j.fare, distance: j.distance, rate: j.distance > 0 ? j.fare / j.distance : 0, flagged: fairness(j).flagged })))}
 - Earnings change: ${earningsChange.toFixed(1)}%`;
 
-        const answer = await askGemini(geminiApiKey, geminiModel, prompt);
-        setInsight(answer);
-      } catch {
-        setInsight("AI insight unavailable right now");
-      }
-      setBusy(false);
-    };
+      const answer = await askGemini(geminiApiKey, geminiModel, prompt);
+      setInsight(answer ?? fallback);
+    } catch {
+      setInsight(fallback);
+    }
+    setBusy(false);
   }, [thisWeekJobs, lastWeekJobs, geminiApiKey, geminiModel]);
 
   // Auto-generate on mount / data change if threshold is met
-  useMemo(() => {
+  useEffect(() => {
     if (thisWeekJobs.length >= 3 && !insight && !busy) {
       void generate();
     }
