@@ -14,7 +14,15 @@ import { EarningsChart } from "@/components/EarningsChart";
 import { FairnessRing } from "@/components/FairnessRing";
 import { StatCard } from "@/components/StatCard";
 import { askGemini, jobsContext } from "@/lib/ai";
-import { benchmarkForVehicle, fairness, jobsThisWeek, jobsLastWeek, useJobs, type Job } from "@/lib/jobs-store";
+import {
+  benchmarkForVehicle,
+  fairness,
+  jobsThisWeek,
+  jobsLastWeek,
+  useJobs,
+  type Job,
+} from "@/lib/jobs-store";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/")({
   head: () => ({ meta: [{ title: "GigShield — Fair Pay, Safety and Worker Support" }] }),
@@ -23,6 +31,7 @@ export const Route = createFileRoute("/")({
 
 function Setup() {
   const { completeSetup } = useJobs();
+  const { translate } = useI18n();
   const [count, setCount] = useState(1);
   return (
     <AppShell>
@@ -30,12 +39,14 @@ function Setup() {
         <div className="grid h-12 w-12 place-items-center rounded-2xl bg-primary text-xl font-black text-primary-foreground">
           G
         </div>
-        <h1 className="mt-5 text-3xl font-extrabold tracking-tight">Let’s record your work</h1>
+        <h1 className="mt-5 text-3xl font-extrabold tracking-tight">
+          {translate("Let’s record your work")}
+        </h1>
         <p className="mt-2 text-muted-foreground">
-          How many jobs are you working or recording today? You can add more later.
+          {translate("How many jobs are you working or recording today? You can add more later.")}
         </p>
         <label className="mt-6 block text-sm font-bold">
-          Number of jobs
+          {translate("Number of jobs")}
           <input
             value={count}
             onChange={(e) => setCount(Math.max(1, Math.min(100, Number(e.target.value) || 1)))}
@@ -46,14 +57,15 @@ function Setup() {
           />
         </label>
         <p className="mt-3 text-xs text-muted-foreground">
-          For every job you can enter fare, distance and time manually, or scan an app screenshot
-          with OCR.
+          {translate(
+            "For every job you can enter fare, distance and time manually, or scan an app screenshot with OCR.",
+          )}
         </p>
         <button
           onClick={() => completeSetup(count)}
           className="mt-6 w-full rounded-xl bg-primary px-4 py-3 font-bold text-primary-foreground"
         >
-          Start logging jobs
+          {translate("Start logging jobs")}
         </button>
       </div>
     </AppShell>
@@ -62,6 +74,7 @@ function Setup() {
 
 function ThisWeeksInsight() {
   const { jobs: allJobs, geminiApiKey, geminiModel } = useJobs();
+  const { translate } = useI18n();
   const [insight, setInsight] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -75,40 +88,42 @@ function ThisWeeksInsight() {
 
       const thisWeekEarnings = thisWeekJobs.reduce((s, j) => s + j.fare, 0);
       const lastWeekEarnings = lastWeekJobs.reduce((s, j) => s + j.fare, 0);
-      const earningsChange = lastWeekEarnings > 0 
-        ? ((thisWeekEarnings - lastWeekEarnings) / lastWeekEarnings) * 100 
-        : 0;
+      const earningsChange =
+        lastWeekEarnings > 0 ? ((thisWeekEarnings - lastWeekEarnings) / lastWeekEarnings) * 100 : 0;
 
       // Find best/worst jobs by rate per km
-      const jobsWithRates = thisWeekJobs.map(j => ({
+      const jobsWithRates = thisWeekJobs.map((j) => ({
         job: j,
-        rate: j.distance > 0 ? j.fare / j.distance : 0
+        rate: j.distance > 0 ? j.fare / j.distance : 0,
       }));
       jobsWithRates.sort((a, b) => b.rate - a.rate);
       const bestJob = jobsWithRates[0]?.job;
       const worstJob = jobsWithRates[jobsWithRates.length - 1]?.job;
 
       // Local fallback in case Gemini API is not configured or fails
-      const earningsMessage = lastWeekEarnings > 0
-        ? `You earned ₹${thisWeekEarnings.toFixed(0)} this week (${earningsChange >= 0 ? "+" : ""}${earningsChange.toFixed(1)}% compared to last week).`
-        : `You earned ₹${thisWeekEarnings.toFixed(0)} across ${thisWeekJobs.length} jobs this week.`;
-      
-      const bestWorstMessage = bestJob && worstJob
-        ? ` Your best-paying ride was on ${bestJob.platform} (₹${(bestJob.fare/bestJob.distance).toFixed(1)}/km), while your lowest rate was on ${worstJob.platform} (₹${(worstJob.fare/worstJob.distance).toFixed(1)}/km).`
-        : "";
+      const earningsMessage =
+        lastWeekEarnings > 0
+          ? `You earned ₹${thisWeekEarnings.toFixed(0)} this week (${earningsChange >= 0 ? "+" : ""}${earningsChange.toFixed(1)}% compared to last week).`
+          : `You earned ₹${thisWeekEarnings.toFixed(0)} across ${thisWeekJobs.length} jobs this week.`;
 
-      const flaggedCount = thisWeekJobs.filter(j => fairness(j).flagged).length;
-      const underpayMessage = flaggedCount > 0
-        ? ` ${flaggedCount} of your jobs had potential underpayment; review night shifts and Zomato/Swiggy rates.`
-        : " All your logged jobs this week matched or exceeded the fair benchmarks!";
+      const bestWorstMessage =
+        bestJob && worstJob
+          ? ` Your best-paying ride was on ${bestJob.platform} (₹${(bestJob.fare / bestJob.distance).toFixed(1)}/km), while your lowest rate was on ${worstJob.platform} (₹${(worstJob.fare / worstJob.distance).toFixed(1)}/km).`
+          : "";
+
+      const flaggedCount = thisWeekJobs.filter((j) => fairness(j).flagged).length;
+      const underpayMessage =
+        flaggedCount > 0
+          ? ` ${flaggedCount} of your jobs had potential underpayment; review night shifts and Zomato/Swiggy rates.`
+          : " All your logged jobs this week matched or exceeded the fair benchmarks!";
 
       const fallback = `${earningsMessage}${bestWorstMessage}${underpayMessage}`;
 
       try {
         const prompt = `You are GigShield, an AI coach for gig workers. Based on the data below, write a supportive, practical 2-4 sentence summary of the worker's week. Identify patterns: point out if underpayments are clustered at specific times (like night shifts) or specific platforms/vehicles, compare earnings to last week, and mention what made the best-paying ride different from the worst-paying ride (platform, distance, or time of day). Avoid generic descriptions. Speak directly to the worker in a friendly, helpful coaching tone.
 Data context:
-- This week's jobs: ${JSON.stringify(thisWeekJobs.map(j => ({ platform: j.platform, vehicle: j.vehicleType, fare: j.fare, distance: j.distance, rate: j.distance > 0 ? j.fare/j.distance : 0, flagged: fairness(j).flagged, hour: new Date(j.datetime).getHours() })))}
-- Last week's jobs: ${JSON.stringify(lastWeekJobs.map(j => ({ platform: j.platform, vehicle: j.vehicleType, fare: j.fare, distance: j.distance, rate: j.distance > 0 ? j.fare/j.distance : 0, flagged: fairness(j).flagged })))}
+- This week's jobs: ${JSON.stringify(thisWeekJobs.map((j) => ({ platform: j.platform, vehicle: j.vehicleType, fare: j.fare, distance: j.distance, rate: j.distance > 0 ? j.fare / j.distance : 0, flagged: fairness(j).flagged, hour: new Date(j.datetime).getHours() })))}
+- Last week's jobs: ${JSON.stringify(lastWeekJobs.map((j) => ({ platform: j.platform, vehicle: j.vehicleType, fare: j.fare, distance: j.distance, rate: j.distance > 0 ? j.fare / j.distance : 0, flagged: fairness(j).flagged })))}
 - Earnings change: ${earningsChange.toFixed(1)}%`;
 
         const answer = await askGemini(geminiApiKey, geminiModel, prompt);
@@ -132,11 +147,11 @@ Data context:
       <section className="mt-4 rounded-3xl border border-border bg-card p-5">
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-semibold text-primary">
-            🤖 AI Insight
+            🤖 {translate("AI Insight")}
           </span>
         </div>
         <p className="mt-3 text-sm text-muted-foreground">
-          Log a few more jobs this week to unlock personalized insights.
+          {translate("Log a few more jobs this week to unlock personalized insights.")}
         </p>
       </section>
     );
@@ -146,7 +161,7 @@ Data context:
     <section className="mt-4 rounded-3xl border border-border bg-card p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <h2 className="text-lg font-bold">This Week's Insight</h2>
+          <h2 className="text-lg font-bold">{translate("This Week's Insight")}</h2>
           <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-semibold text-primary">
             🤖 AI Insight
           </span>
@@ -156,7 +171,7 @@ Data context:
           disabled={busy}
           className="rounded-xl bg-secondary px-3.5 py-2 text-xs font-bold text-foreground border border-border hover:bg-secondary/80 disabled:opacity-50"
         >
-          {busy ? "Analyzing…" : "Refresh insight"}
+          {busy ? translate("Analyzing…") : translate("Refresh insight")}
         </button>
       </div>
       {busy ? (
@@ -176,6 +191,7 @@ Data context:
 
 function ComplaintSupport({ flagged }: { flagged: Job[] }) {
   const { geminiApiKey, geminiModel } = useJobs();
+  const { translate } = useI18n();
   const [selected, setSelected] = useState(flagged[0]?.id ?? "");
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
@@ -202,10 +218,10 @@ function ComplaintSupport({ flagged }: { flagged: Job[] }) {
   return (
     <section className="mt-8 rounded-3xl border border-destructive/30 bg-destructive/5 p-5">
       <h2 className="flex items-center gap-2 text-lg font-bold">
-        <AlertTriangle size={18} className="text-destructive" /> Payout support
+        <AlertTriangle size={18} className="text-destructive" /> {translate("Payout support")}
       </h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        Create a copy-ready complaint for a job that may be underpaid.
+        {translate("Create a copy-ready complaint for a job that may be underpaid.")}
       </p>
       <div className="mt-4 flex flex-wrap gap-2">
         <select
@@ -227,7 +243,7 @@ function ComplaintSupport({ flagged }: { flagged: Job[] }) {
           onClick={() => void createDraft()}
           className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
         >
-          {busy ? "Writing…" : "Generate complaint"}
+          {busy ? translate("Writing…") : translate("Generate complaint")}
         </button>
       </div>
       {draft ? (
@@ -243,6 +259,7 @@ function ComplaintSupport({ flagged }: { flagged: Job[] }) {
 
 function SafetyAndSavings({ jobs }: { jobs: Job[] }) {
   const { savingsGoal, setSavingsGoal, resetSetup } = useJobs();
+  const { translate } = useI18n();
   const earned = jobs.reduce((s, j) => s + j.fare, 0);
   const hours = jobs.reduce((s, j) => s + j.minutes, 0) / 60;
   const [alertReady, setAlertReady] = useState(false);
@@ -250,7 +267,7 @@ function SafetyAndSavings({ jobs }: { jobs: Job[] }) {
     <section className="mt-8 grid gap-3 md:grid-cols-2">
       <div className="rounded-3xl border border-border bg-card p-5">
         <h2 className="flex items-center gap-2 text-lg font-bold">
-          <Target size={18} /> Savings goal
+          <Target size={18} /> {translate("Savings goal")}
         </h2>
         <div className="mt-4 flex gap-2">
           <input
@@ -269,31 +286,35 @@ function SafetyAndSavings({ jobs }: { jobs: Job[] }) {
           />
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
-          ₹{earned.toFixed(0)} earned toward ₹{savingsGoal.toFixed(0)} goal
+          ₹{earned.toFixed(0)} {translate("earned toward")} ₹{savingsGoal.toFixed(0)}{" "}
+          {translate("goal")}
         </p>
       </div>
       <div className="rounded-3xl border border-border bg-card p-5">
         <h2 className="flex items-center gap-2 text-lg font-bold">
-          <ShieldAlert size={18} /> Safety check
+          <ShieldAlert size={18} /> {translate("Safety check")}
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          One tap prepares a message for a trusted contact.
+          {translate("One tap prepares a message for a trusted contact.")}
         </p>
         {hours > 10 ? (
           <p className="mt-3 rounded-xl bg-destructive/10 p-3 text-sm text-destructive">
-            You recorded {hours.toFixed(1)} hours. Please take a break and avoid riding exhausted.
+            {translate("You recorded")} {hours.toFixed(1)} {translate("hours")}.{" "}
+            {translate("Please take a break and avoid riding exhausted.")}
           </p>
         ) : null}
         <button
           onClick={() => setAlertReady(true)}
           className="mt-4 w-full rounded-xl border border-destructive/40 px-4 py-2 font-bold text-destructive hover:bg-destructive/10"
         >
-          🚨 I feel unsafe
+          🚨 {translate("I feel unsafe")}
         </button>
         {alertReady ? (
           <div className="mt-3 rounded-xl bg-secondary p-3 text-sm">
-            <b>Alert prepared:</b>
-            <p className="mt-1">I may be unsafe. Please call me and check my live location.</p>
+            <b>{translate("Alert prepared:")}</b>
+            <p className="mt-1">
+              {translate("I may be unsafe. Please call me and check my live location.")}
+            </p>
             <button
               onClick={() =>
                 navigator.clipboard?.writeText(
@@ -302,7 +323,7 @@ function SafetyAndSavings({ jobs }: { jobs: Job[] }) {
               }
               className="mt-2 text-xs font-bold underline"
             >
-              Copy alert
+              {translate("Copy alert")}
             </button>
           </div>
         ) : null}
@@ -311,7 +332,7 @@ function SafetyAndSavings({ jobs }: { jobs: Job[] }) {
         onClick={resetSetup}
         className="text-left text-xs text-muted-foreground underline md:col-span-2"
       >
-        Reset worker setup and start over
+        {translate("Reset worker setup and start over")}
       </button>
     </section>
   );
@@ -319,6 +340,7 @@ function SafetyAndSavings({ jobs }: { jobs: Job[] }) {
 
 function Dashboard() {
   const { jobs, setupComplete, jobsToLog, removeJob } = useJobs();
+  const { translate } = useI18n();
   const week = jobsThisWeek(jobs);
   const [period, setPeriod] = useState<"week" | "all">("week");
   const scoped = period === "week" ? week : jobs;
@@ -344,10 +366,11 @@ function Dashboard() {
     <AppShell>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight">Your earnings</h1>
+          <h1 className="text-2xl font-extrabold tracking-tight">{translate("Your earnings")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {jobs.length} recorded · {Math.min(jobs.length, jobsToLog)} of {jobsToLog} planned jobs
-            · Fair-pay benchmarks vary by vehicle — see each job for details
+            {jobs.length} {translate("recorded")} · {Math.min(jobs.length, jobsToLog)}{" "}
+            {translate("of")} {jobsToLog} {translate("planned jobs")}·{" "}
+            {translate("Fair-pay benchmarks vary by vehicle — see each job for details")}
           </p>
         </div>
         <div className="flex gap-2">
@@ -355,13 +378,13 @@ function Dashboard() {
             to="/assistant"
             className="inline-flex items-center gap-1.5 rounded-xl border border-border px-4 py-2 text-sm font-bold"
           >
-            <MessageCircle size={16} /> AI chat
+            <MessageCircle size={16} /> {translate("AI chat")}
           </Link>
           <Link
             to="/log"
             className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
           >
-            <IndianRupee size={16} /> Log job
+            <IndianRupee size={16} /> {translate("Log job")}
           </Link>
         </div>
       </div>
@@ -372,33 +395,37 @@ function Dashboard() {
             onClick={() => setPeriod(item)}
             className={`rounded-lg px-4 py-2 text-sm font-bold ${period === item ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
           >
-            {item === "week" ? "This week" : "All time"}
+            {item === "week" ? translate("This week") : translate("All time")}
           </button>
         ))}
       </div>
       <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <StatCard
-          label="Earnings"
+          label={translate("Earnings")}
           value={earnings}
           prefix="₹"
-          hint={`${scoped.length} jobs`}
+          hint={`${scoped.length} ${translate("jobs")}`}
           icon={IndianRupee}
           tone="violet"
         />
         <StatCard
-          label="Hours worked"
+          label={translate("Hours worked")}
           value={hours}
           decimals={1}
           suffix=" h"
-          hint={hours ? `₹${(earnings / hours).toFixed(0)}/hr` : "no time logged"}
+          hint={
+            hours
+              ? `₹${(earnings / hours).toFixed(0)}/${translate("hr")}`
+              : translate("no time logged")
+          }
           icon={Clock}
           tone="teal"
           delay={80}
         />
         <StatCard
-          label="Possible underpayment"
+          label={translate("Possible underpayment")}
           value={flagged.length}
-          hint="review recommended"
+          hint={translate("review recommended")}
           icon={AlertTriangle}
           tone="amber"
           delay={160}
@@ -411,7 +438,7 @@ function Dashboard() {
       </div>
       <ComplaintSupport flagged={flagged} />
       <SafetyAndSavings jobs={jobs} />
-      <h2 className="mt-8 text-lg font-bold">All jobs</h2>
+      <h2 className="mt-8 text-lg font-bold">{translate("All jobs")}</h2>
       {jobs.length ? (
         <div className="mt-4 overflow-x-auto rounded-3xl border border-border bg-card">
           <table className="w-full text-left text-sm">
@@ -428,7 +455,7 @@ function Dashboard() {
                   "",
                 ].map((h) => (
                   <th key={h} className="px-4 py-3 font-medium">
-                    {h}
+                    {translate(h)}
                   </th>
                 ))}
               </tr>
@@ -453,17 +480,19 @@ function Dashboard() {
                     <td className="px-4 py-3">{job.minutes} m</td>
                     <td className="px-4 py-3">
                       <div className="font-medium">
-                        Benchmark: ₹{result.benchmark}/km ({result.vehicleType})
+                        {translate("Benchmark")}: ₹{result.benchmark}/km ({result.vehicleType})
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        Expected: ₹{result.expected.toFixed(0)} (Actual: ₹
-                        {result.ratePerKm.toFixed(1)}/km)
+                        {translate("Expected")}: ₹{result.expected.toFixed(0)} (
+                        {translate("Actual")}: ₹{result.ratePerKm.toFixed(1)}/km)
                       </div>
                     </td>
                     <td
                       className={`px-4 py-3 font-bold ${result.flagged ? "text-destructive" : "text-success"}`}
                     >
-                      {result.flagged ? "⚠️ Possible underpayment" : "✅ Fair"}
+                      {result.flagged
+                        ? `⚠️ ${translate("Possible underpayment")}`
+                        : `✅ ${translate("Fair")}`}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <button
@@ -482,7 +511,7 @@ function Dashboard() {
         </div>
       ) : (
         <div className="mt-4 rounded-3xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-          No jobs yet. Start with manual entry or screenshot scan.
+          {translate("No jobs yet. Start with manual entry or screenshot scan.")}
         </div>
       )}
     </AppShell>

@@ -11,6 +11,7 @@ import {
   VEHICLE_BENCHMARKS,
 } from "@/lib/jobs-store";
 import { extractOcr, parseOcrText, type OcrValues } from "@/lib/ocr";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/log")({
   head: () => ({ meta: [{ title: "Log a Job — GigShield" }] }),
@@ -45,6 +46,7 @@ function applyOcrValues(
 
 function LogJob() {
   const { jobs, jobsToLog, addJob, setupComplete } = useJobs();
+  const { translate } = useI18n();
   const navigate = useNavigate();
   const [mode, setMode] = useState<"manual" | "scan">("manual");
   const [platform, setPlatform] = useState<Platform>("Zomato");
@@ -142,15 +144,17 @@ function LogJob() {
     return (
       <AppShell>
         <div className="rounded-3xl border border-border bg-card p-6">
-          <h1 className="text-2xl font-extrabold">Set up your work plan first</h1>
+          <h1 className="text-2xl font-extrabold">{translate("Set up your work plan first")}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Go back to the dashboard and tell GigShield how many jobs you want to record.
+            {translate(
+              "Go back to the dashboard and tell GigShield how many jobs you want to record.",
+            )}
           </p>
           <Link
             to="/"
             className="mt-4 inline-block rounded-xl bg-primary px-4 py-2 font-bold text-primary-foreground"
           >
-            Go to setup
+            {translate("Go to setup")}
           </Link>
         </div>
       </AppShell>
@@ -160,14 +164,14 @@ function LogJob() {
     <AppShell>
       <div className="flex items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight">Log a job</h1>
+          <h1 className="text-2xl font-extrabold tracking-tight">{translate("Log a job")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Job {Math.min(jobs.length + 1, jobsToLog)} of {jobsToLog} · enter details or scan a
-            screenshot.
+            {translate("enter details or scan a screenshot.")}
           </p>
         </div>
         <Link to="/" className="text-sm font-bold text-muted-foreground hover:text-foreground">
-          Dashboard
+          {translate("Dashboard")}
         </Link>
       </div>
       <div className="mt-4 h-2 overflow-hidden rounded-full bg-secondary">
@@ -181,18 +185,18 @@ function LogJob() {
           onClick={() => setMode("manual")}
           className={`rounded-lg px-4 py-2 text-sm font-bold ${mode === "manual" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
         >
-          Enter manually
+          {translate("Enter manually")}
         </button>
         <button
           onClick={() => setMode("scan")}
           className={`rounded-lg px-4 py-2 text-sm font-bold ${mode === "scan" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
         >
-          Scan screenshot
+          {translate("Scan screenshot")}
         </button>
       </div>
       {mode === "scan" ? (
         <div className="mt-4 rounded-3xl border border-border bg-card p-4">
-          <label className="text-sm font-bold">Upload app screenshot</label>
+          <label className="text-sm font-bold">{translate("Upload app screenshot")}</label>
           <input
             type="file"
             accept="image/png,image/jpeg"
@@ -204,7 +208,7 @@ function LogJob() {
           />
           {lastOcr ? (
             <div className="mt-3 rounded-2xl bg-secondary/80 p-3 text-xs leading-relaxed">
-              <div className="font-bold text-foreground">Extracted OCR Details:</div>
+              <div className="font-bold text-foreground">{translate("Extracted OCR Details:")}</div>
               <div className="mt-1.5 flex flex-wrap gap-2 text-muted-foreground">
                 {lastOcr.pickupDistance !== undefined ? (
                   <span className="rounded-md bg-background px-2 py-1 font-semibold text-foreground">
@@ -218,8 +222,7 @@ function LogJob() {
                 ) : null}
                 {lastOcr.fare !== undefined ? (
                   <span className="rounded-md bg-background px-2 py-1 font-semibold text-foreground">
-                    Payout: ₹{lastOcr.fare}{" "}
-                    {lastOcr.paymentMode ? `(${lastOcr.paymentMode})` : ""}
+                    Payout: ₹{lastOcr.fare} {lastOcr.paymentMode ? `(${lastOcr.paymentMode})` : ""}
                   </span>
                 ) : null}
                 {lastOcr.vehicleType ? (
@@ -236,7 +239,7 @@ function LogJob() {
             </div>
           ) : null}
           <label className="mt-4 block text-sm font-bold">
-            OCR text correction (optional)
+            {translate("OCR text correction (optional)")}
             <textarea
               value={ocrText}
               onChange={(e) => {
@@ -256,7 +259,7 @@ function LogJob() {
       >
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block">
-            <span className="text-sm font-medium">Platform</span>
+            <span className="text-sm font-medium">{translate("Platform")}</span>
             <select
               value={platform}
               onChange={(e) => handlePlatformChange(e.target.value as Platform)}
@@ -270,7 +273,7 @@ function LogJob() {
 
           {showVehicleSelect ? (
             <label className="block">
-              <span className="text-sm font-medium">Vehicle Type</span>
+              <span className="text-sm font-medium">{translate("Vehicle Type")}</span>
               <select
                 value={vehicleType}
                 onChange={(e) => setVehicleType(e.target.value as VehicleType)}
@@ -286,7 +289,7 @@ function LogJob() {
           ) : null}
 
           <label className="block">
-            <span className="text-sm font-medium">Payout (₹)</span>
+            <span className="text-sm font-medium">{translate("Payout (₹)")}</span>
             <input
               value={fare}
               onChange={(e) => setFare(e.target.value)}
@@ -300,7 +303,7 @@ function LogJob() {
           </label>
 
           <label className="block">
-            <span className="text-sm font-medium">Distance (km)</span>
+            <span className="text-sm font-medium">{translate("Distance (km)")}</span>
             <input
               value={distance}
               onChange={(e) => setDistance(e.target.value)}
@@ -315,7 +318,7 @@ function LogJob() {
 
         <div className="grid grid-cols-2 gap-4">
           <label className="block">
-            <span className="text-sm font-medium">Time (minutes)</span>
+            <span className="text-sm font-medium">{translate("Time (minutes)")}</span>
             <input
               value={minutes}
               onChange={(e) => setMinutes(e.target.value)}
@@ -326,7 +329,7 @@ function LogJob() {
             />
           </label>
           <label className="block">
-            <span className="text-sm font-medium">Area or zone</span>
+            <span className="text-sm font-medium">{translate("Area or zone")}</span>
             <input
               value={area}
               onChange={(e) => setArea(e.target.value)}
@@ -338,7 +341,7 @@ function LogJob() {
 
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block">
-            <span className="text-sm font-medium">Date & time</span>
+            <span className="text-sm font-medium">{translate("Date & time")}</span>
             <input
               value={datetime}
               onChange={(e) => setDatetime(e.target.value)}
@@ -350,7 +353,7 @@ function LogJob() {
 
         {fare && distance && minutes ? (
           <div className="rounded-2xl bg-secondary p-3 text-sm">
-            Estimated fair payout:{" "}
+            {translate("Estimated fair payout:")}{" "}
             <b>
               ₹
               {fairness({
@@ -369,7 +372,7 @@ function LogJob() {
         ) : null}
         {error ? <p className="text-sm font-bold text-destructive">{error}</p> : null}
         <button className="w-full rounded-xl bg-primary px-4 py-3 font-bold text-primary-foreground hover:opacity-90">
-          Save and check fairness
+          {translate("Save and check fairness")}
         </button>
       </form>
     </AppShell>

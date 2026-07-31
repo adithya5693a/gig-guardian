@@ -1,8 +1,11 @@
+import { useI18n } from "@/lib/i18n";
+
 export function FairnessRing({ fair, flagged }: { fair: number; flagged: number }) {
   const total = fair + flagged;
   const pct = total === 0 ? 0 : Math.round((fair / total) * 100);
   const r = 34;
   const c = 2 * Math.PI * r;
+  const { translate } = useI18n();
 
   return (
     <div className="animate-rise flex items-center gap-4 rounded-3xl border border-border bg-card p-4">
@@ -26,9 +29,9 @@ export function FairnessRing({ fair, flagged }: { fair: number; flagged: number 
         </div>
       </div>
       <div className="min-w-0">
-        <p className="text-sm font-bold">Fair pay ratio</p>
+        <p className="text-sm font-bold">{translate("Fair pay ratio")}</p>
         <p className="mt-1 text-xs text-muted-foreground">
-          {fair} fair · {flagged} underpaid
+          {fair} {translate("fair")} · {flagged} {translate("underpaid")}
         </p>
         <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-secondary">
           <div

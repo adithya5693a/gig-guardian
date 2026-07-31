@@ -1,7 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { languages, useI18n, type Language } from "@/lib/i18n";
 
 export function AppShell({ children }: { children: ReactNode }) {
+  const { language, setLanguage, t } = useI18n();
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur">
@@ -19,22 +21,37 @@ export function AppShell({ children }: { children: ReactNode }) {
               className="rounded-md px-3 py-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
               activeProps={{ className: "bg-secondary text-foreground" }}
             >
-              Dashboard
+              {t("dashboard")}
             </Link>
             <Link
               to="/log"
               className="rounded-md px-3 py-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
               activeProps={{ className: "bg-secondary text-foreground" }}
             >
-              Log job
+              {t("logJob")}
             </Link>
             <Link
               to="/assistant"
               className="rounded-md px-3 py-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
               activeProps={{ className: "bg-secondary text-foreground" }}
             >
-              AI chat
+              {t("aiChat")}
             </Link>
+            <label className="sr-only" htmlFor="language-select">
+              {t("language")}
+            </label>
+            <select
+              id="language-select"
+              value={language}
+              onChange={(event) => setLanguage(event.target.value as Language)}
+              className="max-w-24 rounded-md border border-border bg-secondary px-2 py-1.5 text-xs"
+            >
+              {Object.entries(languages).map(([code, label]) => (
+                <option key={code} value={code}>
+                  {label}
+                </option>
+              ))}
+            </select>
           </nav>
         </div>
       </header>

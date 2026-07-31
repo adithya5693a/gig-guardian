@@ -1,13 +1,17 @@
 export type ChartPoint = { label: string; value: number };
+import { useI18n } from "@/lib/i18n";
 
 export function EarningsChart({ data }: { data: ChartPoint[] }) {
   const max = Math.max(1, ...data.map((d) => d.value));
+  const { translate } = useI18n();
 
   return (
     <div className="animate-rise rounded-3xl border border-border bg-card p-4">
       <div className="flex items-baseline justify-between gap-3">
-        <h2 className="text-sm font-bold tracking-tight">Earnings breakdown</h2>
-        <span className="text-xs text-muted-foreground">peak ₹{max.toFixed(0)}</span>
+        <h2 className="text-sm font-bold tracking-tight">{translate("Earnings breakdown")}</h2>
+        <span className="text-xs text-muted-foreground">
+          {translate("peak")} ₹{max.toFixed(0)}
+        </span>
       </div>
       <div className="mt-4 flex h-40 items-end gap-1.5">
         {data.map((d, i) => (

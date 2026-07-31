@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import envExample from "../../.env.example?raw";
 
 export type Platform = "Zomato" | "Swiggy" | "Uber" | "Ola" | "Rapido" | "Other";
 
@@ -17,15 +18,13 @@ export type Job = {
   source?: "manual" | "ocr";
 };
 
-export const VEHICLE_BENCHMARKS: Record<
-  VehicleType,
-  { benchmark: number; flagThreshold: number }
-> = {
-  Bike: { benchmark: 15, flagThreshold: 12 },
-  Auto: { benchmark: 18, flagThreshold: 14 },
-  "Car (Non-AC)": { benchmark: 22, flagThreshold: 17 },
-  "Car (AC/Premium)": { benchmark: 28, flagThreshold: 22 },
-};
+export const VEHICLE_BENCHMARKS: Record<VehicleType, { benchmark: number; flagThreshold: number }> =
+  {
+    Bike: { benchmark: 15, flagThreshold: 12 },
+    Auto: { benchmark: 18, flagThreshold: 14 },
+    "Car (Non-AC)": { benchmark: 22, flagThreshold: 17 },
+    "Car (AC/Premium)": { benchmark: 28, flagThreshold: 22 },
+  };
 
 export function isRideHailingPlatform(platform: Platform): boolean {
   return platform !== "Zomato" && platform !== "Swiggy";
@@ -48,9 +47,7 @@ export function ratePerKm(job: Pick<Job, "fare" | "distance">) {
   return job.distance > 0 ? job.fare / job.distance : 0;
 }
 
-export function fairness(
-  job: Pick<Job, "fare" | "distance"> & { vehicleType?: VehicleType },
-) {
+export function fairness(job: Pick<Job, "fare" | "distance"> & { vehicleType?: VehicleType }) {
   const vehicleType = getVehicleType(job);
   const { benchmark, flagThreshold } = benchmarkForVehicle(vehicleType);
   const expected = Math.round(job.distance * benchmark * 100) / 100;
@@ -92,14 +89,22 @@ const JobsContext = createContext<JobsContextValue | null>(null);
 
 const storageKey = "gigshield-state-v2";
 
+function envExampleValue(name: string) {
+  const line = envExample.split(/\r?\n/).find((item) => item.startsWith(`${name}=`));
+  const value = line?.slice(name.length + 1).trim() ?? "";
+  return value === "your_gemini_api_key_here" ? "" : value;
+}
+
+const configuredGeminiApiKey =
+  import.meta.env.VITE_GEMINI_API_KEY || envExampleValue("VITE_GEMINI_API_KEY");
+const configuredGeminiModel =
+  import.meta.env.VITE_GEMINI_MODEL || envExampleValue("VITE_GEMINI_MODEL") || "gemini-2.0-flash";
+
 const getApiKey = () => {
-  if (typeof process !== "undefined" && process.env && process.env.GEMINI_API_KEY) {
+  if (typeof process !== "undefined" && process.env?.GEMINI_API_KEY) {
     return process.env.GEMINI_API_KEY;
   }
-  if (import.meta.env && import.meta.env.VITE_GEMINI_API_KEY) {
-    return import.meta.env.VITE_GEMINI_API_KEY;
-  }
-  return "";
+  return configuredGeminiApiKey;
 };
 
 export function JobsProvider({ children }: { children: ReactNode }) {
@@ -108,9 +113,7 @@ export function JobsProvider({ children }: { children: ReactNode }) {
   const [setupComplete, setSetupComplete] = useState(false);
   const [savingsGoal, setSavingsGoal] = useState(5000);
   const [geminiApiKey, setGeminiApiKey] = useState(() => getApiKey());
-  const [geminiModel, setGeminiModel] = useState(
-    () => import.meta.env.VITE_GEMINI_MODEL ?? "gemini-2.0-flash",
-  );
+  const [geminiModel, setGeminiModel] = useState(configuredGeminiModel);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
