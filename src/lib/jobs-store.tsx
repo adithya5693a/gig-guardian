@@ -185,3 +185,13 @@ export function jobsThisWeek(jobs: Job[]) {
   const start = startOfWeek();
   return jobs.filter((job) => new Date(job.datetime) >= start);
 }
+
+export function jobsLastWeek(jobs: Job[]) {
+  const startOfThisWeek = startOfWeek();
+  const startOfLastWeek = new Date(startOfThisWeek);
+  startOfLastWeek.setDate(startOfLastWeek.getDate() - 7);
+  return jobs.filter((job) => {
+    const dt = new Date(job.datetime);
+    return dt >= startOfLastWeek && dt < startOfThisWeek;
+  });
+}

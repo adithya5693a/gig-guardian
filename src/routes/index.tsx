@@ -14,7 +14,7 @@ import { EarningsChart } from "@/components/EarningsChart";
 import { FairnessRing } from "@/components/FairnessRing";
 import { StatCard } from "@/components/StatCard";
 import { askGemini, jobsContext } from "@/lib/ai";
-import { benchmarkFor, fairness, jobsThisWeek, useJobs, type Job } from "@/lib/jobs-store";
+import { benchmarkForVehicle, fairness, jobsThisWeek, jobsLastWeek, useJobs, type Job } from "@/lib/jobs-store";
 
 export const Route = createFileRoute("/")({
   head: () => ({ meta: [{ title: "GigShield — Fair Pay, Safety and Worker Support" }] }),
@@ -60,44 +60,115 @@ function Setup() {
   );
 }
 
-function WeeklyInsight({ jobs }: { jobs: Job[] }) {
-  const { geminiApiKey, geminiModel } = useJobs();
+function ThisWeeksInsight() {
+  const { jobs: allJobs, geminiApiKey, geminiModel } = useJobs();
   const [insight, setInsight] = useState("");
   const [busy, setBusy] = useState(false);
-  async function generate() {
-    setBusy(true);
-    const fallback = `You earned ₹${jobs.reduce((s, j) => s + j.fare, 0).toFixed(0)} across ${jobs.length} jobs and worked ${(jobs.reduce((s, j) => s + j.minutes, 0) / 60).toFixed(1)} hours. ${jobs.filter((j) => fairness(j).flagged).length} job(s) may be underpaid. Keep screenshots and review low-paying shifts.`;
-    try {
-      const answer = await askGemini(
-        geminiApiKey,
-        geminiModel,
-        `Create a short, encouraging weekly insight for a gig worker. Mention earnings, hours, average hourly earning, flagged jobs, platform/night pattern, and one action. Do not invent data. Call fairness an estimate. Data: ${jobsContext(jobs)}`,
-      );
-      setInsight(answer ?? fallback);
-    } catch {
-      setInsight(fallback);
+
+  const thisWeekJobs = useMemo(() => jobsThisWeek(allJobs), [allJobs]);
+  const lastWeekJobs = useMemo(() => jobsLastWeek(allJobs), [allJobs]);
+
+  const generate = useMemo(() => {
+    return async () => {
+      if (thisWeekJobs.length < 3) return;
+      setBusy(true);
+
+      const thisWeekEarnings = thisWeekJobs.reduce((s, j) => s + j.fare, 0);
+      const lastWeekEarnings = lastWeekJobs.reduce((s, j) => s + j.fare, 0);
+      const earningsChange = lastWeekEarnings > 0 
+        ? ((thisWeekEarnings - lastWeekEarnings) / lastWeekEarnings) * 100 
+        : 0;
+
+      // Find best/worst jobs by rate per km
+      const jobsWithRates = thisWeekJobs.map(j => ({
+        job: j,
+        rate: j.distance > 0 ? j.fare / j.distance : 0
+      }));
+      jobsWithRates.sort((a, b) => b.rate - a.rate);
+      const bestJob = jobsWithRates[0]?.job;
+      const worstJob = jobsWithRates[jobsWithRates.length - 1]?.job;
+
+      // Local fallback in case Gemini API is not configured or fails
+      const earningsMessage = lastWeekEarnings > 0
+        ? `You earned ₹${thisWeekEarnings.toFixed(0)} this week (${earningsChange >= 0 ? "+" : ""}${earningsChange.toFixed(1)}% compared to last week).`
+        : `You earned ₹${thisWeekEarnings.toFixed(0)} across ${thisWeekJobs.length} jobs this week.`;
+      
+      const bestWorstMessage = bestJob && worstJob
+        ? ` Your best-paying ride was on ${bestJob.platform} (₹${(bestJob.fare/bestJob.distance).toFixed(1)}/km), while your lowest rate was on ${worstJob.platform} (₹${(worstJob.fare/worstJob.distance).toFixed(1)}/km).`
+        : "";
+
+      const flaggedCount = thisWeekJobs.filter(j => fairness(j).flagged).length;
+      const underpayMessage = flaggedCount > 0
+        ? ` ${flaggedCount} of your jobs had potential underpayment; review night shifts and Zomato/Swiggy rates.`
+        : " All your logged jobs this week matched or exceeded the fair benchmarks!";
+
+      const fallback = `${earningsMessage}${bestWorstMessage}${underpayMessage}`;
+
+      try {
+        const prompt = `You are GigShield, an AI coach for gig workers. Based on the data below, write a supportive, practical 2-4 sentence summary of the worker's week. Identify patterns: point out if underpayments are clustered at specific times (like night shifts) or specific platforms/vehicles, compare earnings to last week, and mention what made the best-paying ride different from the worst-paying ride (platform, distance, or time of day). Avoid generic descriptions. Speak directly to the worker in a friendly, helpful coaching tone.
+Data context:
+- This week's jobs: ${JSON.stringify(thisWeekJobs.map(j => ({ platform: j.platform, vehicle: j.vehicleType, fare: j.fare, distance: j.distance, rate: j.distance > 0 ? j.fare/j.distance : 0, flagged: fairness(j).flagged, hour: new Date(j.datetime).getHours() })))}
+- Last week's jobs: ${JSON.stringify(lastWeekJobs.map(j => ({ platform: j.platform, vehicle: j.vehicleType, fare: j.fare, distance: j.distance, rate: j.distance > 0 ? j.fare/j.distance : 0, flagged: fairness(j).flagged })))}
+- Earnings change: ${earningsChange.toFixed(1)}%`;
+
+        const answer = await askGemini(geminiApiKey, geminiModel, prompt);
+        setInsight(answer ?? fallback);
+      } catch {
+        setInsight(fallback);
+      }
+      setBusy(false);
+    };
+  }, [thisWeekJobs, lastWeekJobs, geminiApiKey, geminiModel]);
+
+  // Auto-generate on mount / data change if threshold is met
+  useMemo(() => {
+    if (thisWeekJobs.length >= 3 && !insight && !busy) {
+      void generate();
     }
-    setBusy(false);
+  }, [thisWeekJobs.length, generate, insight, busy]);
+
+  if (thisWeekJobs.length < 3) {
+    return (
+      <section className="mt-4 rounded-3xl border border-border bg-card p-5">
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-semibold text-primary">
+            🤖 AI Insight
+          </span>
+        </div>
+        <p className="mt-3 text-sm text-muted-foreground">
+          Log a few more jobs this week to unlock personalized insights.
+        </p>
+      </section>
+    );
   }
+
   return (
-    <section className="mt-8 rounded-3xl border border-border bg-card p-5">
+    <section className="mt-4 rounded-3xl border border-border bg-card p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-bold">Weekly AI insight</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Turn your numbers into a simple action plan.
-          </p>
+        <div className="flex items-center gap-2">
+          <h2 className="text-lg font-bold">This Week's Insight</h2>
+          <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-semibold text-primary">
+            🤖 AI Insight
+          </span>
         </div>
         <button
           onClick={() => void generate()}
-          disabled={busy || jobs.length === 0}
-          className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50"
+          disabled={busy}
+          className="rounded-xl bg-secondary px-3.5 py-2 text-xs font-bold text-foreground border border-border hover:bg-secondary/80 disabled:opacity-50"
         >
-          {busy ? "Generating…" : "Generate insight"}
+          {busy ? "Analyzing…" : "Refresh insight"}
         </button>
       </div>
-      {insight ? (
-        <p className="mt-4 rounded-2xl bg-secondary p-4 text-sm leading-6">{insight}</p>
+      {busy ? (
+        <div className="mt-4 space-y-2 animate-pulse">
+          <div className="h-4 bg-muted rounded w-3/4"></div>
+          <div className="h-4 bg-muted rounded w-5/6"></div>
+          <div className="h-4 bg-muted rounded w-2/3"></div>
+        </div>
+      ) : insight ? (
+        <p className="mt-4 text-sm leading-6 text-foreground bg-secondary/40 rounded-2xl p-4 border border-border/40">
+          {insight}
+        </p>
       ) : null}
     </section>
   );
@@ -333,11 +404,11 @@ function Dashboard() {
           delay={160}
         />
       </div>
+      <ThisWeeksInsight />
       <div className="mt-3 grid gap-3 lg:grid-cols-[1.4fr_1fr]">
         <EarningsChart data={chart} />
         <FairnessRing fair={scoped.length - flagged.length} flagged={flagged.length} />
       </div>
-      <WeeklyInsight jobs={scoped} />
       <ComplaintSupport flagged={flagged} />
       <SafetyAndSavings jobs={jobs} />
       <h2 className="mt-8 text-lg font-bold">All jobs</h2>
