@@ -113,13 +113,13 @@ function ComplaintSupport({ flagged }: { flagged: Job[] }) {
     if (!job) return;
     setBusy(true);
     const result = fairness(job);
-    const fallback = `Subject: Request to review payout\n\nHello ${job.platform} Support,\n\nPlease review my payout of ₹${job.fare.toFixed(0)} for the ${job.distance} km job completed on ${new Date(job.datetime).toLocaleString("en-IN")}. It took ${job.minutes} minutes. GigShield estimates a fair payout of ₹${result.expected.toFixed(0)} using a transparent benchmark. Please verify the fare calculation and let me know if an adjustment is due.\n\nThank you.`;
+    const fallback = `Subject: Request to review payout\n\nHello ${job.platform} Support,\n\nPlease review my payout of ₹${job.fare.toFixed(0)} for the ${job.distance} km ${result.vehicleType} job completed on ${new Date(job.datetime).toLocaleString("en-IN")}. It took ${job.minutes} minutes. GigShield's benchmark for ${result.vehicleType} is ₹${result.benchmark}/km (expected ₹${result.expected.toFixed(0)}). Actual rate was ₹${result.ratePerKm.toFixed(1)}/km, which is below the ₹${result.flagThreshold}/km threshold. Please verify the fare calculation and let me know if an adjustment is due.\n\nThank you.`;
     try {
       setDraft(
         (await askGemini(
           geminiApiKey,
           geminiModel,
-          `Write a concise polite payout-review complaint. Include platform, date, fare ₹${job.fare}, distance ${job.distance} km, duration ${job.minutes} minutes, estimated fare ₹${result.expected}, and request a review.`,
+          `Write a concise polite payout-review complaint. Include platform ${job.platform}, vehicle ${result.vehicleType}, date, fare ₹${job.fare}, distance ${job.distance} km, duration ${job.minutes} minutes, vehicle benchmark ₹${result.benchmark}/km, estimated fare ₹${result.expected}, and request a review.`,
         )) ?? fallback,
       );
     } catch {
@@ -142,11 +142,15 @@ function ComplaintSupport({ flagged }: { flagged: Job[] }) {
           onChange={(e) => setSelected(e.target.value)}
           className="rounded-xl border border-input bg-secondary px-3 py-2 text-sm"
         >
-          {flagged.map((item) => (
-            <option key={item.id} value={item.id}>
-              {item.platform} · ₹{item.fare} · {new Date(item.datetime).toLocaleDateString("en-IN")}
-            </option>
-          ))}
+          {flagged.map((item) => {
+            const res = fairness(item);
+            return (
+              <option key={item.id} value={item.id}>
+                {item.platform} ({res.vehicleType}) · ₹{item.fare} ·{" "}
+                {new Date(item.datetime).toLocaleDateString("en-IN")}
+              </option>
+            );
+          })}
         </select>
         <button
           onClick={() => void createDraft()}
@@ -272,7 +276,7 @@ function Dashboard() {
           <h1 className="text-2xl font-extrabold tracking-tight">Your earnings</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {jobs.length} recorded · {Math.min(jobs.length, jobsToLog)} of {jobsToLog} planned jobs
-            · estimates are not legal proof
+            · Fair-pay benchmarks vary by vehicle — see each job for details
           </p>
         </div>
         <div className="flex gap-2">
@@ -342,13 +346,20 @@ function Dashboard() {
           <table className="w-full text-left text-sm">
             <thead className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
               <tr>
-                {["Date", "Platform", "Fare", "Distance", "Time", "Estimate", "Status", ""].map(
-                  (h) => (
-                    <th key={h} className="px-4 py-3 font-medium">
-                      {h}
-                    </th>
-                  ),
-                )}
+                {[
+                  "Date",
+                  "Platform & Vehicle",
+                  "Fare",
+                  "Distance",
+                  "Time",
+                  "Applied Benchmark",
+                  "Status",
+                  "",
+                ].map((h) => (
+                  <th key={h} className="px-4 py-3 font-medium">
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
@@ -362,11 +373,22 @@ function Dashboard() {
                         timeStyle: "short",
                       })}
                     </td>
-                    <td className="px-4 py-3 font-bold">{job.platform}</td>
+                    <td className="px-4 py-3">
+                      <div className="font-bold">{job.platform}</div>
+                      <div className="text-xs text-muted-foreground">{result.vehicleType}</div>
+                    </td>
                     <td className="px-4 py-3 font-semibold">₹{job.fare}</td>
                     <td className="px-4 py-3">{job.distance} km</td>
                     <td className="px-4 py-3">{job.minutes} m</td>
-                    <td className="px-4 py-3">₹{result.expected.toFixed(0)}</td>
+                    <td className="px-4 py-3">
+                      <div className="font-medium">
+                        Benchmark: ₹{result.benchmark}/km ({result.vehicleType})
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Expected: ₹{result.expected.toFixed(0)} (Actual: ₹
+                        {result.ratePerKm.toFixed(1)}/km)
+                      </div>
+                    </td>
                     <td
                       className={`px-4 py-3 font-bold ${result.flagged ? "text-destructive" : "text-success"}`}
                     >

@@ -1,4 +1,4 @@
-import type { Job } from "./jobs-store";
+import { fairness, type Job } from "./jobs-store";
 
 export async function askGemini(apiKey: string, model: string, prompt: string) {
   if (!apiKey.trim()) return null;
@@ -23,7 +23,7 @@ export function localAssistant(question: string, jobs: Job[]) {
   const q = question.toLowerCase();
   const earnings = jobs.reduce((sum, job) => sum + job.fare, 0);
   const hours = jobs.reduce((sum, job) => sum + job.minutes, 0) / 60;
-  const flagged = jobs.filter((job) => job.fare < job.distance * 12).length;
+  const flagged = jobs.filter((job) => fairness(job).flagged).length;
   if (q.includes("earn") || q.includes("hour"))
     return `You have earned ₹${earnings.toFixed(0)} across ${jobs.length} jobs and worked ${hours.toFixed(1)} hours.`;
   if (q.includes("fair") || q.includes("underpay"))

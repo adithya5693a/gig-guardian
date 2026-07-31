@@ -1,10 +1,13 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
-export type Platform = "Zomato" | "Swiggy" | "Uber" | "Ola" | "Other";
+export type Platform = "Zomato" | "Swiggy" | "Uber" | "Ola" | "Rapido" | "Other";
+
+export type VehicleType = "Bike" | "Auto" | "Car (Non-AC)" | "Car (AC/Premium)";
 
 export type Job = {
   id: string;
   platform: Platform;
+  vehicleType: VehicleType;
   fare: number;
   distance: number;
   minutes: number;
@@ -14,44 +17,54 @@ export type Job = {
   source?: "manual" | "ocr";
 };
 
-export const FAIR_RATE_REFERENCE: Record<
-  Platform,
-  { day: [number, number, number]; night: [number, number, number] }
+export const VEHICLE_BENCHMARKS: Record<
+  VehicleType,
+  { benchmark: number; flagThreshold: number }
 > = {
-  Zomato: { day: [28, 11, 1.8], night: [32, 13, 2.2] },
-  Swiggy: { day: [28, 11, 1.8], night: [32, 13, 2.2] },
-  Uber: { day: [40, 14, 2.4], night: [45, 16, 2.8] },
-  Ola: { day: [40, 14, 2.4], night: [45, 16, 2.8] },
-  Other: { day: [30, 12, 2], night: [34, 14, 2.3] },
+  Bike: { benchmark: 15, flagThreshold: 12 },
+  Auto: { benchmark: 18, flagThreshold: 14 },
+  "Car (Non-AC)": { benchmark: 22, flagThreshold: 17 },
+  "Car (AC/Premium)": { benchmark: 28, flagThreshold: 22 },
 };
 
-export function benchmarkFor(platform: Platform, nightShift: boolean) {
-  const [base, perKm, perMinute] = FAIR_RATE_REFERENCE[platform][nightShift ? "night" : "day"];
-  return { base, perKm, perMinute };
+export function isRideHailingPlatform(platform: Platform): boolean {
+  return platform !== "Zomato" && platform !== "Swiggy";
 }
 
-export function expectedFare(job: Pick<Job, "platform" | "distance" | "minutes" | "nightShift">) {
-  const rate = benchmarkFor(job.platform, Boolean(job.nightShift));
-  return (
-    Math.round((rate.base + job.distance * rate.perKm + job.minutes * rate.perMinute) * 100) / 100
-  );
+export function getVehicleType(job: { vehicleType?: VehicleType }): VehicleType {
+  return job.vehicleType ?? "Bike";
 }
 
-export function ratePerKm(job: Job) {
+export function benchmarkForVehicle(vehicleType: VehicleType = "Bike") {
+  return VEHICLE_BENCHMARKS[vehicleType] ?? VEHICLE_BENCHMARKS.Bike;
+}
+
+export function expectedFare(job: { distance: number; vehicleType?: VehicleType }) {
+  const { benchmark } = benchmarkForVehicle(getVehicleType(job));
+  return Math.round(job.distance * benchmark * 100) / 100;
+}
+
+export function ratePerKm(job: Pick<Job, "fare" | "distance">) {
   return job.distance > 0 ? job.fare / job.distance : 0;
 }
 
 export function fairness(
-  job: Pick<Job, "platform" | "fare" | "distance" | "minutes" | "nightShift">,
+  job: Pick<Job, "fare" | "distance"> & { vehicleType?: VehicleType },
 ) {
-  const expected = expectedFare(job);
-  const ratio = expected > 0 ? job.fare / expected : 0;
+  const vehicleType = getVehicleType(job);
+  const { benchmark, flagThreshold } = benchmarkForVehicle(vehicleType);
+  const expected = Math.round(job.distance * benchmark * 100) / 100;
+  const rate = ratePerKm(job);
+  const flagged = job.distance > 0 && rate < flagThreshold;
+
   return {
     expected,
-    ratio,
-    status:
-      ratio >= 0.9 ? "Fair" : ratio >= 0.75 ? "Slightly below expected" : "Possible underpayment",
-    flagged: ratio < 0.75,
+    benchmark,
+    flagThreshold,
+    vehicleType,
+    ratePerKm: rate,
+    status: flagged ? "Possible underpayment" : "Fair",
+    flagged,
   } as const;
 }
 
@@ -94,7 +107,13 @@ export function JobsProvider({ children }: { children: ReactNode }) {
     try {
       const saved = JSON.parse(localStorage.getItem(storageKey) ?? "null");
       if (saved) {
-        setJobs(saved.jobs ?? []);
+        const rawJobs = Array.isArray(saved.jobs) ? saved.jobs : [];
+        setJobs(
+          rawJobs.map((j: Partial<Job>) => ({
+            ...j,
+            vehicleType: j.vehicleType ?? "Bike",
+          })) as Job[],
+        );
         setJobsToLog(saved.jobsToLog ?? 1);
         setSetupComplete(Boolean(saved.setupComplete));
         setSavingsGoal(saved.savingsGoal ?? 5000);

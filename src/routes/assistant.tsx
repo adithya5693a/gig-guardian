@@ -141,13 +141,24 @@ function Assistant() {
                   className="mt-1 min-h-24 w-full rounded-xl border border-input bg-secondary p-3 text-sm font-normal outline-none focus:ring-2 focus:ring-ring/30"
                 />
               </label>
-              <p className="mt-2 whitespace-pre-wrap rounded-xl bg-secondary p-3 text-xs">
-                Detected:{" "}
-                {Object.entries(ocrValues)
-                  .filter(([, value]) => value !== undefined && value !== "")
-                  .map(([key, value]) => `${key}: ${value}`)
+              <div className="mt-2 rounded-xl bg-secondary p-3 text-xs leading-relaxed">
+                <span className="font-bold">Detected: </span>
+                {[
+                  ocrValues.pickupDistance !== undefined
+                    ? `Pickup: ${ocrValues.pickupDistance} km`
+                    : null,
+                  ocrValues.distance !== undefined ? `Trip: ${ocrValues.distance} km` : null,
+                  ocrValues.fare !== undefined
+                    ? `Payout: ₹${ocrValues.fare}${ocrValues.paymentMode ? ` (${ocrValues.paymentMode})` : ""}`
+                    : null,
+                  ocrValues.vehicleType ? `Vehicle: ${ocrValues.vehicleType}` : null,
+                  ocrValues.platform ? `Platform: ${ocrValues.platform}` : null,
+                  ocrValues.area ? `Destination: ${ocrValues.area}` : null,
+                  ocrValues.minutes ? `Duration: ${ocrValues.minutes} m` : null,
+                ]
+                  .filter(Boolean)
                   .join(" · ") || "No labelled values detected; edit the OCR text above."}
-              </p>
+              </div>
             </>
           ) : null}
         </div>

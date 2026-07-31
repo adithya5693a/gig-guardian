@@ -1,7 +1,15 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
-import { benchmarkFor, fairness, type Platform, useJobs } from "@/lib/jobs-store";
+import {
+  benchmarkForVehicle,
+  fairness,
+  isRideHailingPlatform,
+  type Platform,
+  type VehicleType,
+  useJobs,
+  VEHICLE_BENCHMARKS,
+} from "@/lib/jobs-store";
 import { extractOcr, parseOcrText, type OcrValues } from "@/lib/ocr";
 
 export const Route = createFileRoute("/log")({
@@ -9,7 +17,8 @@ export const Route = createFileRoute("/log")({
   component: LogJob,
 });
 
-const PLATFORMS: Platform[] = ["Zomato", "Swiggy", "Uber", "Ola", "Other"];
+const PLATFORMS: Platform[] = ["Zomato", "Swiggy", "Uber", "Ola", "Rapido", "Other"];
+const VEHICLE_TYPES: VehicleType[] = ["Bike", "Auto", "Car (Non-AC)", "Car (AC/Premium)"];
 const inputClass =
   "mt-1 w-full rounded-xl border border-input bg-secondary px-3 py-2.5 text-base outline-none focus:border-ring focus:ring-2 focus:ring-ring/30";
 
@@ -19,12 +28,17 @@ function localNow() {
   return d.toISOString().slice(0, 16);
 }
 
-function applyOcrValues(values: OcrValues, setValue: (field: string, value: string) => void) {
+function applyOcrValues(
+  values: OcrValues,
+  setValue: (field: string, value: string) => void,
+  setVehicle?: (v: VehicleType) => void,
+) {
   // Only apply values OCR actually found; missing information stays available for manual entry.
-  if (values.fare > 0) setValue("fare", String(values.fare));
-  if (values.distance > 0) setValue("distance", String(values.distance));
-  if (values.minutes > 0) setValue("minutes", String(values.minutes));
+  if (values.fare && values.fare > 0) setValue("fare", String(values.fare));
+  if (values.distance && values.distance > 0) setValue("distance", String(values.distance));
+  if (values.minutes && values.minutes > 0) setValue("minutes", String(values.minutes));
   if (values.platform) setValue("platform", values.platform);
+  if (values.vehicleType && setVehicle) setVehicle(values.vehicleType);
   if (values.datetime) setValue("datetime", values.datetime);
   if (values.area) setValue("area", values.area);
 }
@@ -34,15 +48,43 @@ function LogJob() {
   const navigate = useNavigate();
   const [mode, setMode] = useState<"manual" | "scan">("manual");
   const [platform, setPlatform] = useState<Platform>("Zomato");
+  const [vehicleType, setVehicleType] = useState<VehicleType>("Bike");
   const [fare, setFare] = useState("");
   const [distance, setDistance] = useState("");
   const [minutes, setMinutes] = useState("");
   const [datetime, setDatetime] = useState(localNow());
   const [area, setArea] = useState("");
   const [ocrText, setOcrText] = useState("");
+  const [lastOcr, setLastOcr] = useState<OcrValues | null>(null);
   const [ocrBusy, setOcrBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+
+  const showVehicleSelect = isRideHailingPlatform(platform);
+  const activeVehicle: VehicleType = showVehicleSelect ? vehicleType : "Bike";
+
+  function handlePlatformChange(nextPlatform: Platform) {
+    setPlatform(nextPlatform);
+    if (!isRideHailingPlatform(nextPlatform)) {
+      setVehicleType("Bike");
+    }
+  }
+
+  function handleOcrResults(values: OcrValues) {
+    setLastOcr(values);
+    applyOcrValues(
+      values,
+      (field, value) => {
+        if (field === "fare") setFare(value);
+        if (field === "distance") setDistance(value);
+        if (field === "minutes") setMinutes(value);
+        if (field === "platform") handlePlatformChange(value as Platform);
+        if (field === "datetime") setDatetime(value);
+        if (field === "area") setArea(value);
+      },
+      (vehicle) => setVehicleType(vehicle),
+    );
+  }
 
   async function scanScreenshot(file: File) {
     setOcrBusy(true);
@@ -50,15 +92,7 @@ function LogJob() {
     try {
       const result = await extractOcr(file);
       setOcrText(result.text);
-      const values = result.values;
-      applyOcrValues(values, (field, value) => {
-        if (field === "fare") setFare(value);
-        if (field === "distance") setDistance(value);
-        if (field === "minutes") setMinutes(value);
-        if (field === "platform") setPlatform(value as Platform);
-        if (field === "datetime") setDatetime(value);
-        if (field === "area") setArea(value);
-      });
+      handleOcrResults(result.values);
     } catch (err) {
       setError(
         err instanceof Error
@@ -84,6 +118,7 @@ function LogJob() {
     const nightShift = started.getHours() >= 19 || started.getHours() < 6;
     const job = {
       platform,
+      vehicleType: activeVehicle,
       fare: f,
       distance: d,
       minutes: m,
@@ -95,7 +130,7 @@ function LogJob() {
     addJob(job);
     const result = fairness(job);
     setMessage(
-      `${result.status}: actual ₹${f.toFixed(0)} vs estimated fair ₹${result.expected.toFixed(0)}.`,
+      `${result.status}: actual ₹${f.toFixed(0)} vs estimated fair ₹${result.expected.toFixed(0)} (${activeVehicle} benchmark: ₹${result.benchmark}/km).`,
     );
     setFare("");
     setDistance("");
@@ -167,8 +202,38 @@ function LogJob() {
             }}
             className="mt-2 block w-full text-sm"
           />
-          {ocrBusy ? (
-            <p className="mt-2 text-sm text-muted-foreground">Reading screenshot with OCR…</p>
+          {lastOcr ? (
+            <div className="mt-3 rounded-2xl bg-secondary/80 p-3 text-xs leading-relaxed">
+              <div className="font-bold text-foreground">Extracted OCR Details:</div>
+              <div className="mt-1.5 flex flex-wrap gap-2 text-muted-foreground">
+                {lastOcr.pickupDistance !== undefined ? (
+                  <span className="rounded-md bg-background px-2 py-1 font-semibold text-foreground">
+                    Pickup: {lastOcr.pickupDistance} km
+                  </span>
+                ) : null}
+                {lastOcr.distance !== undefined ? (
+                  <span className="rounded-md bg-background px-2 py-1 font-semibold text-foreground">
+                    Trip: {lastOcr.distance} km
+                  </span>
+                ) : null}
+                {lastOcr.fare !== undefined ? (
+                  <span className="rounded-md bg-background px-2 py-1 font-semibold text-foreground">
+                    Payout: ₹{lastOcr.fare}{" "}
+                    {lastOcr.paymentMode ? `(${lastOcr.paymentMode})` : ""}
+                  </span>
+                ) : null}
+                {lastOcr.vehicleType ? (
+                  <span className="rounded-md bg-background px-2 py-1 font-semibold text-foreground">
+                    Vehicle: {lastOcr.vehicleType}
+                  </span>
+                ) : null}
+                {lastOcr.area ? (
+                  <span className="rounded-md bg-background px-2 py-1 font-semibold text-foreground">
+                    Destination: {lastOcr.area}
+                  </span>
+                ) : null}
+              </div>
+            </div>
           ) : null}
           <label className="mt-4 block text-sm font-bold">
             OCR text correction (optional)
@@ -177,16 +242,9 @@ function LogJob() {
               onChange={(e) => {
                 setOcrText(e.target.value);
                 const values = parseOcrText(e.target.value);
-                applyOcrValues(values, (field, value) => {
-                  if (field === "fare") setFare(value);
-                  if (field === "distance") setDistance(value);
-                  if (field === "minutes") setMinutes(value);
-                  if (field === "platform") setPlatform(value as Platform);
-                  if (field === "datetime") setDatetime(value);
-                  if (field === "area") setArea(value);
-                });
+                handleOcrResults(values);
               }}
-              placeholder="Paste text such as Payout ₹100 · 8 km · 35 min"
+              placeholder="Paste text such as Bike · ₹29 (Cash) · 0.3 Km · 2.3 Km drop Brookefield"
               className={`${inputClass} min-h-24`}
             />
           </label>
@@ -201,7 +259,7 @@ function LogJob() {
             <span className="text-sm font-medium">Platform</span>
             <select
               value={platform}
-              onChange={(e) => setPlatform(e.target.value as Platform)}
+              onChange={(e) => handlePlatformChange(e.target.value as Platform)}
               className={inputClass}
             >
               {PLATFORMS.map((item) => (
@@ -209,6 +267,24 @@ function LogJob() {
               ))}
             </select>
           </label>
+
+          {showVehicleSelect ? (
+            <label className="block">
+              <span className="text-sm font-medium">Vehicle Type</span>
+              <select
+                value={vehicleType}
+                onChange={(e) => setVehicleType(e.target.value as VehicleType)}
+                className={inputClass}
+              >
+                {VEHICLE_TYPES.map((type) => (
+                  <option key={type} value={type}>
+                    {type} (₹{VEHICLE_BENCHMARKS[type].benchmark}/km)
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+
           <label className="block">
             <span className="text-sm font-medium">Payout (₹)</span>
             <input
@@ -222,8 +298,7 @@ function LogJob() {
               className={inputClass}
             />
           </label>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
+
           <label className="block">
             <span className="text-sm font-medium">Distance (km)</span>
             <input
@@ -236,6 +311,9 @@ function LogJob() {
               className={inputClass}
             />
           </label>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
           <label className="block">
             <span className="text-sm font-medium">Time (minutes)</span>
             <input
@@ -244,17 +322,6 @@ function LogJob() {
               type="number"
               min="0"
               placeholder="35"
-              className={inputClass}
-            />
-          </label>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="block">
-            <span className="text-sm font-medium">Date & time</span>
-            <input
-              value={datetime}
-              onChange={(e) => setDatetime(e.target.value)}
-              type="datetime-local"
               className={inputClass}
             />
           </label>
@@ -268,30 +335,32 @@ function LogJob() {
             />
           </label>
         </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="block">
+            <span className="text-sm font-medium">Date & time</span>
+            <input
+              value={datetime}
+              onChange={(e) => setDatetime(e.target.value)}
+              type="datetime-local"
+              className={inputClass}
+            />
+          </label>
+        </div>
+
         {fare && distance && minutes ? (
           <div className="rounded-2xl bg-secondary p-3 text-sm">
             Estimated fair payout:{" "}
             <b>
               ₹
               {fairness({
-                platform,
                 fare: Number(fare),
                 distance: Number(distance),
-                minutes: Number(minutes),
-                datetime,
-                nightShift:
-                  new Date(datetime).getHours() >= 19 || new Date(datetime).getHours() < 6,
+                vehicleType: activeVehicle,
               }).expected.toFixed(0)}
             </b>
             <span className="ml-2 text-muted-foreground">
-              (
-              {
-                benchmarkFor(
-                  platform,
-                  new Date(datetime).getHours() >= 19 || new Date(datetime).getHours() < 6,
-                ).perKm
-              }
-              /km + time benchmark)
+              (Benchmark: ₹{VEHICLE_BENCHMARKS[activeVehicle].benchmark}/km · {activeVehicle})
             </span>
           </div>
         ) : null}
