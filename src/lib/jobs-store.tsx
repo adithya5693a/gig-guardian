@@ -84,8 +84,10 @@ export function JobsProvider({ children }: { children: ReactNode }) {
   const [jobsToLog, setJobsToLog] = useState(1);
   const [setupComplete, setSetupComplete] = useState(false);
   const [savingsGoal, setSavingsGoal] = useState(5000);
-  const [geminiApiKey, setGeminiApiKey] = useState("");
-  const [geminiModel, setGeminiModel] = useState("gemini-2.0-flash");
+  const [geminiApiKey, setGeminiApiKey] = useState(() => import.meta.env.VITE_GEMINI_API_KEY ?? "");
+  const [geminiModel, setGeminiModel] = useState(
+    () => import.meta.env.VITE_GEMINI_MODEL ?? "gemini-2.0-flash",
+  );
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
