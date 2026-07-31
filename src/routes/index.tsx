@@ -81,7 +81,6 @@ function ThisWeeksInsight() {
   const { jobs: allJobs, geminiApiKey, geminiModel } = useJobs();
   const { translate, language } = useI18n();
   const [insight, setInsight] = useState("");
-  const [insightError, setInsightError] = useState("");
   const [busy, setBusy] = useState(false);
 
   const thisWeekJobs = useMemo(() => jobsThisWeek(allJobs), [allJobs]);
@@ -90,7 +89,6 @@ function ThisWeeksInsight() {
   const generate = useCallback(async () => {
     if (thisWeekJobs.length < 3) return;
     setBusy(true);
-    setInsightError("");
 
     const thisWeekEarnings = thisWeekJobs.reduce((s, j) => s + j.fare, 0);
     const lastWeekEarnings = lastWeekJobs.reduce((s, j) => s + j.fare, 0);
@@ -160,10 +158,8 @@ function ThisWeeksInsight() {
         systemPrompt,
       );
       setInsight(result.answer);
-      setInsightError(result.error ?? "");
-    } catch (error) {
+    } catch {
       setInsight(fallback);
-      setInsightError(error instanceof Error ? error.message : String(error));
     }
     setBusy(false);
   }, [thisWeekJobs, lastWeekJobs, geminiApiKey, geminiModel, language]);
@@ -218,7 +214,6 @@ function ThisWeeksInsight() {
           {insight}
         </p>
       ) : null}
-      {insightError ? <p className="mt-2 text-xs text-destructive">{insightError}</p> : null}
     </section>
   );
 }
