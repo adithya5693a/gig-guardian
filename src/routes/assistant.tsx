@@ -35,7 +35,11 @@ function Assistant() {
         (await askGemini(geminiApiKey, geminiModel, prompt)) ?? localAssistant(text, jobs);
       setMessages((current) => [...current, { role: "assistant", text: answer }]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Gemini could not answer right now.");
+      // The local assistant is an intentional fallback when Gemini is missing,
+      // rate-limited, or temporarily unavailable. Keep the chat clean because
+      // a useful answer is still being shown below.
+      void err;
+      setError("");
       setMessages((current) => [
         ...current,
         { role: "assistant", text: localAssistant(text, jobs) },
