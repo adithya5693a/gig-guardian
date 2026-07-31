@@ -215,14 +215,19 @@ function LogJob() {
                     Pickup: {lastOcr.pickupDistance} km
                   </span>
                 ) : null}
-                {lastOcr.distance !== undefined ? (
+                {distance ? (
                   <span className="rounded-md bg-background px-2 py-1 font-semibold text-foreground">
-                    Trip: {lastOcr.distance} km
+                    Trip: {distance} km
                   </span>
                 ) : null}
-                {lastOcr.fare !== undefined ? (
+                {fare ? (
                   <span className="rounded-md bg-background px-2 py-1 font-semibold text-foreground">
-                    Payout: ₹{lastOcr.fare} {lastOcr.paymentMode ? `(${lastOcr.paymentMode})` : ""}
+                    Payout: ₹{fare} {lastOcr.paymentMode ? `(${lastOcr.paymentMode})` : ""}
+                  </span>
+                ) : null}
+                {minutes ? (
+                  <span className="rounded-md bg-background px-2 py-1 font-semibold text-foreground">
+                    Time: {minutes} min
                   </span>
                 ) : null}
                 {lastOcr.vehicleType ? (
@@ -230,9 +235,9 @@ function LogJob() {
                     Vehicle: {lastOcr.vehicleType}
                   </span>
                 ) : null}
-                {lastOcr.area ? (
+                {area ? (
                   <span className="rounded-md bg-background px-2 py-1 font-semibold text-foreground">
-                    Destination: {lastOcr.area}
+                    Destination: {area}
                   </span>
                 ) : null}
               </div>

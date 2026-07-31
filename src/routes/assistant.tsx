@@ -30,7 +30,7 @@ function Assistant() {
     setBusy(true);
 
     try {
-      const prompt = `Reply in the user's selected language (${language}). Use simple, practical language. Do not present estimates as legal proof. Worker job data: ${jobsContext(jobs)}. User question: ${text}. Answer in under 150 words.`;
+      const prompt = `Reply in the user's selected language (${language}). Use simple, practical language. Do not present estimates as legal proof. Currency is INR (₹) and distance unit is km. Never use dollars ($) or miles. Structured units: ${JSON.stringify({ currency: "INR", unit: "km" })}. Worker job data: ${jobsContext(jobs)}. User question: ${text}. Answer in under 150 words.`;
       const answer = await askWithFallback(
         geminiApiKey,
         geminiModel,

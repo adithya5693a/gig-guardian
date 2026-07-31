@@ -38,7 +38,7 @@ function cleanOcrLines(input: string) {
     .map((line) =>
       line
         .replace(/\s+/g, " ")
-        .replace(/^[ .,\/]+|[ .,\/]+$/g, "")
+        .replace(/^[ .,\x2f]+|[ .,\x2f]+$/g, "")
         .trim(),
     )
     .filter(Boolean);

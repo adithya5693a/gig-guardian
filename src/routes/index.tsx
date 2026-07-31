@@ -13,7 +13,12 @@ import { AppShell } from "@/components/AppShell";
 import { EarningsChart } from "@/components/EarningsChart";
 import { FairnessRing } from "@/components/FairnessRing";
 import { StatCard } from "@/components/StatCard";
-import { askWithFallback, jobsContext } from "@/lib/ai";
+import {
+  askWithFallback,
+  askWithFallbackDetailed,
+  GIGSHIELD_AI_SYSTEM_PROMPT,
+  jobsContext,
+} from "@/lib/ai";
 import {
   benchmarkForVehicle,
   fairness,
@@ -74,8 +79,9 @@ function Setup() {
 
 function ThisWeeksInsight() {
   const { jobs: allJobs, geminiApiKey, geminiModel } = useJobs();
-  const { translate } = useI18n();
+  const { translate, language } = useI18n();
   const [insight, setInsight] = useState("");
+  const [insightError, setInsightError] = useState("");
   const [busy, setBusy] = useState(false);
 
   const thisWeekJobs = useMemo(() => jobsThisWeek(allJobs), [allJobs]);
@@ -84,6 +90,7 @@ function ThisWeeksInsight() {
   const generate = useCallback(async () => {
     if (thisWeekJobs.length < 3) return;
     setBusy(true);
+    setInsightError("");
 
     const thisWeekEarnings = thisWeekJobs.reduce((s, j) => s + j.fare, 0);
     const lastWeekEarnings = lastWeekJobs.reduce((s, j) => s + j.fare, 0);
@@ -119,26 +126,54 @@ function ThisWeeksInsight() {
     const fallback = `${earningsMessage}${bestWorstMessage}${underpayMessage}`;
 
     try {
-      const prompt = `You are GigShield, an AI coach for gig workers. Based on the data below, write a supportive, practical 2-4 sentence summary of the worker's week. Identify patterns: point out if underpayments are clustered at specific times (like night shifts) or specific platforms/vehicles, compare earnings to last week, and mention what made the best-paying ride different from the worst-paying ride (platform, distance, or time of day). Avoid generic descriptions. Speak directly to the worker in a friendly, helpful coaching tone.
-Data context:
-- This week's jobs: ${JSON.stringify(thisWeekJobs.map((j) => ({ platform: j.platform, vehicle: j.vehicleType, fare: j.fare, distance: j.distance, rate: j.distance > 0 ? j.fare / j.distance : 0, flagged: fairness(j).flagged, hour: new Date(j.datetime).getHours() })))}
-- Last week's jobs: ${JSON.stringify(lastWeekJobs.map((j) => ({ platform: j.platform, vehicle: j.vehicleType, fare: j.fare, distance: j.distance, rate: j.distance > 0 ? j.fare / j.distance : 0, flagged: fairness(j).flagged })))}
-- Earnings change: ${earningsChange.toFixed(1)}%`;
+      const structuredData = {
+        currency: "INR",
+        unit: "km",
+        responseLanguage: language,
+        thisWeek: thisWeekJobs.map((j) => ({
+          platform: j.platform,
+          vehicle: j.vehicleType,
+          fareInr: j.fare,
+          distanceKm: j.distance,
+          rateInrPerKm: j.distance > 0 ? j.fare / j.distance : 0,
+          flagged: fairness(j).flagged,
+          hour: new Date(j.datetime).getHours(),
+        })),
+        lastWeek: lastWeekJobs.map((j) => ({
+          platform: j.platform,
+          vehicle: j.vehicleType,
+          fareInr: j.fare,
+          distanceKm: j.distance,
+          rateInrPerKm: j.distance > 0 ? j.fare / j.distance : 0,
+          flagged: fairness(j).flagged,
+        })),
+        earningsChangePercent: earningsChange,
+      };
+      const systemPrompt = `${GIGSHIELD_AI_SYSTEM_PROMPT} Respond in the selected UI language: ${language}. Always respond using Indian Rupees (₹) and kilometers (km). Never use dollars ($) or miles under any circumstance.`;
+      const prompt = `Write a supportive, practical 2-4 sentence summary of the worker's week. Identify underpayment patterns by time, platform, or vehicle, compare earnings to last week, and explain what made the best-paying trip different from the lowest-rate trip. Use only the structured data below.\nStructured data: ${JSON.stringify(structuredData)}`;
 
-      const answer = await askWithFallback(geminiApiKey, geminiModel, prompt, fallback);
-      setInsight(answer);
-    } catch {
+      const result = await askWithFallbackDetailed(
+        geminiApiKey,
+        geminiModel,
+        prompt,
+        fallback,
+        systemPrompt,
+      );
+      setInsight(result.answer);
+      setInsightError(result.error ?? "");
+    } catch (error) {
       setInsight(fallback);
+      setInsightError(error instanceof Error ? error.message : String(error));
     }
     setBusy(false);
-  }, [thisWeekJobs, lastWeekJobs, geminiApiKey, geminiModel]);
+  }, [thisWeekJobs, lastWeekJobs, geminiApiKey, geminiModel, language]);
 
   // Auto-generate on mount / data change if threshold is met
   useEffect(() => {
-    if (thisWeekJobs.length >= 3 && !insight && !busy) {
+    if (thisWeekJobs.length >= 3 && !busy) {
       void generate();
     }
-  }, [thisWeekJobs.length, generate, insight, busy]);
+  }, [thisWeekJobs.length, generate, busy]);
 
   if (thisWeekJobs.length < 3) {
     return (
@@ -183,6 +218,7 @@ Data context:
           {insight}
         </p>
       ) : null}
+      {insightError ? <p className="mt-2 text-xs text-destructive">{insightError}</p> : null}
     </section>
   );
 }
