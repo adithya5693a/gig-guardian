@@ -360,10 +360,20 @@ function LogJob() {
                 fare: Number(fare),
                 distance: Number(distance),
                 vehicleType: activeVehicle,
+                platform,
               }).expected.toFixed(0)}
             </b>
             <span className="ml-2 text-muted-foreground">
-              (Benchmark: ₹{VEHICLE_BENCHMARKS[activeVehicle].benchmark}/km · {activeVehicle})
+              ({translate("Community benchmark")}: ₹
+              {
+                fairness({
+                  fare: Number(fare),
+                  distance: Number(distance),
+                  vehicleType: activeVehicle,
+                  platform,
+                }).benchmark
+              }
+              /km · {activeVehicle})
             </span>
           </div>
         ) : null}

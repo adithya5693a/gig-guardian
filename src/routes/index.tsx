@@ -486,6 +486,11 @@ function Dashboard() {
                         {translate("Expected")}: ₹{result.expected.toFixed(0)} (
                         {translate("Actual")}: ₹{result.ratePerKm.toFixed(1)}/km)
                       </div>
+                      <div className="text-xs text-muted-foreground">
+                        {result.benchmarkSource === "community"
+                          ? `${translate("Community data")}: ${result.communitySampleSize} ${translate("workers")}`
+                          : translate("Vehicle baseline")}
+                      </div>
                     </td>
                     <td
                       className={`px-4 py-3 font-bold ${result.flagged ? "text-destructive" : "text-success"}`}

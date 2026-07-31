@@ -26,6 +26,39 @@ export const VEHICLE_BENCHMARKS: Record<VehicleType, { benchmark: number; flagTh
     "Car (AC/Premium)": { benchmark: 28, flagThreshold: 22 },
   };
 
+type CommunityObservation = {
+  worker: string;
+  platform: Platform;
+  vehicleType: VehicleType;
+  distance: number;
+  fare: number;
+};
+
+const COMMUNITY_RATE_SEEDS: Record<Platform, Partial<Record<VehicleType, number>>> = {
+  Zomato: { Bike: 14.2, Auto: 17.1 },
+  Swiggy: { Bike: 14.8, Auto: 17.6 },
+  Uber: { Bike: 15.4, Auto: 18.5, "Car (Non-AC)": 21.8, "Car (AC/Premium)": 27.5 },
+  Ola: { Bike: 15.1, Auto: 18.2, "Car (Non-AC)": 22.3, "Car (AC/Premium)": 28.4 },
+  Rapido: { Bike: 14.6, Auto: 17.8 },
+  Other: { Bike: 14.5, Auto: 17.5, "Car (Non-AC)": 21.5, "Car (AC/Premium)": 27 },
+};
+
+// Deterministic demo observations stand in for anonymized crowdsourced records
+// until a real backend/Supabase dataset is connected.
+export const COMMUNITY_OBSERVATIONS: CommunityObservation[] = Object.entries(
+  COMMUNITY_RATE_SEEDS,
+).flatMap(([platform, vehicleRates], platformIndex) =>
+  Object.entries(vehicleRates).flatMap(([vehicleType, rate], vehicleIndex) =>
+    [3.5, 5, 7.5, 10, 12, 16].map((distance, workerIndex) => ({
+      worker: `demo-worker-${platformIndex + 1}-${vehicleIndex + 1}-${workerIndex + 1}`,
+      platform: platform as Platform,
+      vehicleType: vehicleType as VehicleType,
+      distance,
+      fare: Math.round(distance * (rate + ((workerIndex % 3) - 1) * 0.7) * 100) / 100,
+    })),
+  ),
+);
+
 export function isRideHailingPlatform(platform: Platform): boolean {
   return platform !== "Zomato" && platform !== "Swiggy";
 }
@@ -43,13 +76,45 @@ export function expectedFare(job: { distance: number; vehicleType?: VehicleType 
   return Math.round(job.distance * benchmark * 100) / 100;
 }
 
+function median(values: number[]) {
+  const sorted = [...values].sort((a, b) => a - b);
+  if (!sorted.length) return 0;
+  const middle = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
+}
+
+export function communityBenchmarkFor(job: { platform?: Platform; vehicleType?: VehicleType }) {
+  const vehicleType = getVehicleType(job);
+  const matching = COMMUNITY_OBSERVATIONS.filter(
+    (observation) =>
+      observation.vehicleType === vehicleType &&
+      (!job.platform || observation.platform === job.platform),
+  );
+  const rates = matching.map((observation) => observation.fare / observation.distance);
+  const medianRate = median(rates);
+  const fallback = benchmarkForVehicle(vehicleType).benchmark;
+  return {
+    benchmark: Math.round((medianRate || fallback) * 100) / 100,
+    sampleSize: matching.length,
+    source: matching.length >= 5 ? ("community" as const) : ("vehicle" as const),
+  };
+}
+
 export function ratePerKm(job: Pick<Job, "fare" | "distance">) {
   return job.distance > 0 ? job.fare / job.distance : 0;
 }
 
-export function fairness(job: Pick<Job, "fare" | "distance"> & { vehicleType?: VehicleType }) {
+export function fairness(
+  job: Pick<Job, "fare" | "distance"> & { vehicleType?: VehicleType; platform?: Platform },
+) {
   const vehicleType = getVehicleType(job);
-  const { benchmark, flagThreshold } = benchmarkForVehicle(vehicleType);
+  const vehicleBenchmark = benchmarkForVehicle(vehicleType);
+  const community = communityBenchmarkFor(job);
+  const benchmark =
+    community.source === "community"
+      ? Math.round((vehicleBenchmark.benchmark * 0.35 + community.benchmark * 0.65) * 100) / 100
+      : vehicleBenchmark.benchmark;
+  const flagThreshold = Math.round(benchmark * 0.8 * 100) / 100;
   const expected = Math.round(job.distance * benchmark * 100) / 100;
   const rate = ratePerKm(job);
   const flagged = job.distance > 0 && rate < flagThreshold;
@@ -60,6 +125,9 @@ export function fairness(job: Pick<Job, "fare" | "distance"> & { vehicleType?: V
     flagThreshold,
     vehicleType,
     ratePerKm: rate,
+    communityBenchmark: community.benchmark,
+    communitySampleSize: community.sampleSize,
+    benchmarkSource: community.source,
     status: flagged ? "Possible underpayment" : "Fair",
     flagged,
   } as const;
