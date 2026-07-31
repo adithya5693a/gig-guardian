@@ -13,7 +13,7 @@ import { AppShell } from "@/components/AppShell";
 import { EarningsChart } from "@/components/EarningsChart";
 import { FairnessRing } from "@/components/FairnessRing";
 import { StatCard } from "@/components/StatCard";
-import { askGemini, jobsContext } from "@/lib/ai";
+import { askWithFallback, jobsContext } from "@/lib/ai";
 import {
   benchmarkForVehicle,
   fairness,
@@ -125,8 +125,8 @@ Data context:
 - Last week's jobs: ${JSON.stringify(lastWeekJobs.map((j) => ({ platform: j.platform, vehicle: j.vehicleType, fare: j.fare, distance: j.distance, rate: j.distance > 0 ? j.fare / j.distance : 0, flagged: fairness(j).flagged })))}
 - Earnings change: ${earningsChange.toFixed(1)}%`;
 
-      const answer = await askGemini(geminiApiKey, geminiModel, prompt);
-      setInsight(answer ?? fallback);
+      const answer = await askWithFallback(geminiApiKey, geminiModel, prompt, fallback);
+      setInsight(answer);
     } catch {
       setInsight(fallback);
     }
@@ -201,10 +201,11 @@ function ComplaintSupport({ flagged }: { flagged: Job[] }) {
     const fallback = `Subject: Request to review payout\n\nHello ${job.platform} Support,\n\nPlease review my payout of ₹${job.fare.toFixed(0)} for the ${job.distance} km ${result.vehicleType} job completed on ${new Date(job.datetime).toLocaleString("en-IN")}. It took ${job.minutes} minutes. GigShield's benchmark for ${result.vehicleType} is ₹${result.benchmark}/km (expected ₹${result.expected.toFixed(0)}). Actual rate was ₹${result.ratePerKm.toFixed(1)}/km, which is below the ₹${result.flagThreshold}/km threshold. Please verify the fare calculation and let me know if an adjustment is due.\n\nThank you.`;
     try {
       setDraft(
-        (await askGemini(
+        (await askWithFallback(
           geminiApiKey,
           geminiModel,
           `Write a concise polite payout-review complaint. Include platform ${job.platform}, vehicle ${result.vehicleType}, date, fare ₹${job.fare}, distance ${job.distance} km, duration ${job.minutes} minutes, vehicle benchmark ₹${result.benchmark}/km, estimated fare ₹${result.expected}, and request a review.`,
+          fallback,
         )) ?? fallback,
       );
     } catch {

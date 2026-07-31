@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
-import { askGemini, jobsContext, localAssistant } from "@/lib/ai";
+import { askWithFallback, jobsContext, localAssistant } from "@/lib/ai";
 import { useJobs } from "@/lib/jobs-store";
 import { useI18n } from "@/lib/i18n";
 
@@ -30,20 +30,15 @@ function Assistant() {
     setBusy(true);
 
     try {
-      const prompt = `You are GigShield, a helpful AI assistant for gig workers. Reply in the user's selected language (${language}). Use simple, practical language. Do not present estimates as legal proof. Worker job data: ${jobsContext(jobs)}. User question: ${text}. Answer in under 150 words.`;
-      const answer =
-        (await askGemini(geminiApiKey, geminiModel, prompt)) ?? localAssistant(text, jobs);
+      const prompt = `Reply in the user's selected language (${language}). Use simple, practical language. Do not present estimates as legal proof. Worker job data: ${jobsContext(jobs)}. User question: ${text}. Answer in under 150 words.`;
+      const answer = await askWithFallback(
+        geminiApiKey,
+        geminiModel,
+        prompt,
+        localAssistant(text, jobs),
+      );
       setMessages((current) => [...current, { role: "assistant", text: answer }]);
-    } catch (err) {
-      // The local assistant is an intentional fallback when Gemini is missing,
-      // rate-limited, or temporarily unavailable. Keep the chat clean because
-      // a useful answer is still being shown below.
-      void err;
       setError("");
-      setMessages((current) => [
-        ...current,
-        { role: "assistant", text: localAssistant(text, jobs) },
-      ]);
     } finally {
       setBusy(false);
     }

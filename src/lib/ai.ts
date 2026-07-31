@@ -27,14 +27,59 @@ export async function askGemini(apiKey: string, model: string, prompt: string) {
   );
   if (!response.ok) throw new Error("AI insight unavailable right now");
   const data = await response.json();
-  const answer = data.candidates?.[0]?.content?.parts
-    ?.map((part: { text?: string }) => part.text ?? "")
-    .join("") ?? null;
-  
+  const answer =
+    data.candidates?.[0]?.content?.parts
+      ?.map((part: { text?: string }) => part.text ?? "")
+      .join("") ?? null;
+
   if (!answer) {
     throw new Error("AI insight unavailable right now");
   }
   return answer;
+}
+
+export async function askLmStudio(prompt: string) {
+  const endpoint =
+    import.meta.env.VITE_LM_STUDIO_URL || "http://127.0.0.1:1234/v1/chat/completions";
+  const model = import.meta.env.VITE_LM_STUDIO_MODEL || "Qwen2.5-Coder-7B-Instruct-4bit";
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model,
+      messages: [
+        {
+          role: "system",
+          content: "You are GigShield, a helpful and practical assistant for gig workers.",
+        },
+        { role: "user", content: prompt },
+      ],
+      temperature: 0.3,
+      max_tokens: 300,
+    }),
+  });
+  if (!response.ok) throw new Error(`LM Studio request failed (${response.status})`);
+  const data = await response.json();
+  const answer = data.choices?.[0]?.message?.content?.trim();
+  if (!answer) throw new Error("LM Studio returned no answer");
+  return answer as string;
+}
+
+export async function askWithFallback(
+  apiKey: string,
+  geminiModel: string,
+  prompt: string,
+  localFallback: string,
+) {
+  try {
+    return await askGemini(apiKey, geminiModel, prompt);
+  } catch {
+    try {
+      return await askLmStudio(prompt);
+    } catch {
+      return localFallback;
+    }
+  }
 }
 
 export function localAssistant(question: string, jobs: Job[]) {
