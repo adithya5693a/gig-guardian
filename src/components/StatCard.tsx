@@ -44,9 +44,7 @@ export function StatCard({
     >
       <div className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-white/15 blur-2xl transition-opacity duration-300 group-hover:opacity-80" />
       <div className="relative flex items-start justify-between gap-2">
-        <p className="text-[11px] font-semibold uppercase tracking-widest text-white/80">
-          {label}
-        </p>
+        <p className="text-[11px] font-semibold uppercase tracking-widest text-white/80">{label}</p>
         <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-white/20 backdrop-blur">
           <Icon size={16} />
         </span>

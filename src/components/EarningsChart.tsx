@@ -11,7 +11,10 @@ export function EarningsChart({ data }: { data: ChartPoint[] }) {
       </div>
       <div className="mt-4 flex h-40 items-end gap-1.5">
         {data.map((d, i) => (
-          <div key={d.label + i} className="group flex min-w-0 flex-1 flex-col items-center gap-1.5">
+          <div
+            key={d.label + i}
+            className="group flex min-w-0 flex-1 flex-col items-center gap-1.5"
+          >
             <span className="text-[10px] font-semibold tabular-nums text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
               ₹{d.value.toFixed(0)}
             </span>
