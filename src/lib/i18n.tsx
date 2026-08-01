@@ -181,6 +181,11 @@ const extraTranslations: Partial<Record<Language, Record<string, string>>> = {
     "Loss today": "आज की हानि",
     "Net today": "आज का शुद्ध",
     "No savings yet": "अभी कोई बचत नहीं",
+    "Connect AI": "AI कनेक्ट करें",
+    "Add your Gemini API key to enable AI answers.":
+      "AI उत्तरों के लिए अपनी Gemini API कुंजी जोड़ें।",
+    "Save key": "कुंजी सेव करें",
+    "Get a free API key at Google AI Studio": "Google AI Studio से मुफ्त API कुंजी प्राप्त करें",
   },
   kn: {
     "Set up your work plan first": "ಮೊದಲು ನಿಮ್ಮ ಕೆಲಸದ ಯೋಜನೆಯನ್ನು ಹೊಂದಿಸಿ",
@@ -278,6 +283,10 @@ const extraTranslations: Partial<Record<Language, Record<string, string>>> = {
     "Loss today": "ಇಂದಿನ ನಷ್ಟ",
     "Net today": "ಇಂದಿನ ನಿವ್ವಳ",
     "No savings yet": "ಇನ್ನೂ ಉಳಿತಾಯ ಇಲ್ಲ",
+    "Connect AI": "AI ಸಂಪರ್ಕಿಸಿ",
+    "Add your Gemini API key to enable AI answers.": "AI ಉತ್ತರಗಳಿಗಾಗಿ ನಿಮ್ಮ Gemini API ಕೀ ಸೇರಿಸಿ.",
+    "Save key": "ಕೀ ಉಳಿಸಿ",
+    "Get a free API key at Google AI Studio": "Google AI Studio ನಲ್ಲಿ ಉಚಿತ API ಕೀ ಪಡೆಯಿರಿ",
   },
   ta: {
     "Set up your work plan first": "முதலில் உங்கள் வேலைத் திட்டத்தை அமைக்கவும்",
@@ -312,6 +321,11 @@ const extraTranslations: Partial<Record<Language, Record<string, string>>> = {
     "Loss today": "இன்றைய நஷ்டம்",
     "Net today": "இன்றைய நிகரம்",
     "No savings yet": "இன்னும் சேமிப்பு இல்லை",
+    "Connect AI": "AI ஐ இணைக்கவும்",
+    "Add your Gemini API key to enable AI answers.":
+      "AI பதில்களுக்கு உங்கள் Gemini API விசையைச் சேர்க்கவும்.",
+    "Save key": "விசையைச் சேமி",
+    "Get a free API key at Google AI Studio": "Google AI Studio இல் இலவச API விசையைப் பெறுங்கள்",
   },
   te: {
     "Set up your work plan first": "ముందుగా మీ పని ప్రణాళికను సెటప్ చేయండి",
@@ -346,6 +360,11 @@ const extraTranslations: Partial<Record<Language, Record<string, string>>> = {
     "Loss today": "ఈరోజు నష్టం",
     "Net today": "ఈరోజు నికరం",
     "No savings yet": "ఇంకా పొదుపు లేదు",
+    "Connect AI": "AIని కనెక్ట్ చేయండి",
+    "Add your Gemini API key to enable AI answers.":
+      "AI సమాధానాల కోసం మీ Gemini API కీని జోడించండి.",
+    "Save key": "కీని సేవ్ చేయండి",
+    "Get a free API key at Google AI Studio": "Google AI Studioలో ఉచిత API కీని పొందండి",
   },
   mr: {
     "Set up your work plan first": "प्रथम तुमचा कामाचा प्लॅन सेट करा",
@@ -380,6 +399,10 @@ const extraTranslations: Partial<Record<Language, Record<string, string>>> = {
     "Loss today": "आजचा तोटा",
     "Net today": "आजची निव्वळ",
     "No savings yet": "अद्याप बचत नाही",
+    "Connect AI": "AI कनेक्ट करा",
+    "Add your Gemini API key to enable AI answers.": "AI उत्तरांसाठी तुमची Gemini API की जोडा.",
+    "Save key": "की सेव्ह करा",
+    "Get a free API key at Google AI Studio": "Google AI Studio वर मोफत API की मिळवा",
   },
   bn: {
     "Set up your work plan first": "প্রথমে আপনার কাজের পরিকল্পনা সেট করুন",

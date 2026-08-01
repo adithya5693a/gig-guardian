@@ -213,6 +213,7 @@ export function JobsProvider({ children }: { children: ReactNode }) {
         setDailySavingTarget(saved.dailySavingTarget ?? 300);
         setAutoSavePercent(saved.autoSavePercent ?? 10);
         setSavingsLog(Array.isArray(saved.savingsLog) ? saved.savingsLog : []);
+        setGeminiApiKey(saved.geminiApiKey ?? getApiKey());
         setGeminiModel(saved.geminiModel ?? "gemini-2.0-flash");
       }
     } catch {
@@ -233,6 +234,7 @@ export function JobsProvider({ children }: { children: ReactNode }) {
         dailySavingTarget,
         autoSavePercent,
         savingsLog,
+        geminiApiKey,
         geminiModel,
       }),
     );
@@ -245,6 +247,7 @@ export function JobsProvider({ children }: { children: ReactNode }) {
     dailySavingTarget,
     autoSavePercent,
     savingsLog,
+    geminiApiKey,
     geminiModel,
   ]);
 

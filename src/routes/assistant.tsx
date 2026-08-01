@@ -19,12 +19,13 @@ export const Route = createFileRoute("/assistant")({
 type Message = { role: "user" | "assistant"; text: string };
 
 function Assistant() {
-  const { jobs, geminiApiKey, geminiModel } = useJobs();
+  const { jobs, geminiApiKey, setGeminiApiKey, geminiModel } = useJobs();
   const { language, t } = useI18n();
   const [messages, setMessages] = useState<Message[]>([]);
   const [question, setQuestion] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [draftKey, setDraftKey] = useState(geminiApiKey);
 
   async function send(value = question) {
     const text = value.trim();
@@ -72,6 +73,40 @@ function Assistant() {
           {t("clear")}
         </button>
       </div>
+
+      {!geminiApiKey ? (
+        <div className="mt-4 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4">
+          <p className="text-sm font-bold">{t("connectAI")}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{t("connectAIHint")}</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <input
+              type="password"
+              value={draftKey}
+              onChange={(event) => setDraftKey(event.target.value)}
+              placeholder="AIza…"
+              className="min-w-0 flex-1 rounded-xl border border-input bg-secondary px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring/30"
+            />
+            <button
+              onClick={() => {
+                if (draftKey.trim()) setGeminiApiKey(draftKey.trim());
+              }}
+              className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
+            >
+              {t("saveKey")}
+            </button>
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            <a
+              href="https://aistudio.google.com/apikey"
+              target="_blank"
+              rel="noreferrer"
+              className="underline"
+            >
+              {t("getFreeKey")}
+            </a>
+          </p>
+        </div>
+      ) : null}
 
       <div className="mt-5 min-h-80 space-y-3 rounded-3xl border border-border bg-card p-4">
         {messages.length === 0 ? (
