@@ -22,6 +22,21 @@ async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit, tim
   }
 }
 
+async function geminiFetchWithRetry(url: string, init: RequestInit) {
+  const maxAttempts = 3;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const response = await fetchWithTimeout(url, init);
+    if (response.status === 429 && attempt < maxAttempts) {
+      const retryAfterSeconds = Number(response.headers.get("Retry-After"));
+      const delay = retryAfterSeconds > 0 ? retryAfterSeconds * 1000 : attempt * 2000;
+      await new Promise((resolve) => setTimeout(resolve, Math.min(delay, 10_000)));
+      continue;
+    }
+    return response;
+  }
+  throw new Error("Gemini request failed (429)");
+}
+
 export function getGeminiApiKey(): string {
   if (typeof process !== "undefined" && process.env?.GEMINI_API_KEY) {
     return process.env.GEMINI_API_KEY;
@@ -49,7 +64,7 @@ export async function askGeminiChat(
   if (!activeKey || activeKey === "your_gemini_api_key_here") {
     throw new Error("Gemini API key is missing");
   }
-  const response = await fetchWithTimeout(
+  const response = await geminiFetchWithRetry(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(activeKey)}`,
     {
       method: "POST",
@@ -63,7 +78,13 @@ export async function askGeminiChat(
       }),
     },
   );
-  if (!response.ok) throw new Error(`Gemini request failed (${response.status})`);
+  if (!response.ok) {
+    throw new Error(
+      response.status === 429
+        ? "Gemini is rate-limited (429). Wait a minute and try again."
+        : `Gemini request failed (${response.status})`,
+    );
+  }
   const data = await response.json();
   const answer =
     data.candidates?.[0]?.content?.parts
@@ -182,7 +203,10 @@ export async function askWithFallbackChat(
   try {
     return await askLmStudioChat(messages, systemPrompt);
   } catch (error) {
-    return `${localFallback}\n\n(Gemini: ${geminiError}; LM Studio: ${errorMessage(error)})`;
+    const reason = geminiError.includes("429")
+      ? "AI is busy right now — wait a minute and try again"
+      : `AI is unavailable (${geminiError})`;
+    return `${localFallback}\n\n(${reason})`;
   }
 }
 
