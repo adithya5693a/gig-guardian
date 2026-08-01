@@ -1,7 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
-import { askWithFallback, jobsContext, localAssistant } from "@/lib/ai";
+import {
+  askWithFallbackChat,
+  GIGSHIELD_CHAT_SYSTEM_PROMPT,
+  jobsContext,
+  localAssistant,
+  type ChatMessage,
+} from "@/lib/ai";
 import { useJobs } from "@/lib/jobs-store";
 import { useI18n } from "@/lib/i18n";
 
@@ -30,12 +36,17 @@ function Assistant() {
     setBusy(true);
 
     try {
-      const prompt = `Reply in the user's selected language (${language}). Use simple, practical language. Do not present estimates as legal proof. Currency is INR (₹) and distance unit is km. Never use dollars ($) or miles. Structured units: ${JSON.stringify({ currency: "INR", unit: "km" })}. Worker job data: ${jobsContext(jobs)}. User question: ${text}. Answer in under 150 words.`;
-      const answer = await askWithFallback(
+      const systemPrompt = `${GIGSHIELD_CHAT_SYSTEM_PROMPT}\nReply in the user's selected language (${language}). Worker job data: ${jobsContext(jobs)}.`;
+      const history: ChatMessage[] = [
+        ...messages.map((message) => ({ role: message.role, text: message.text })),
+        { role: "user", text },
+      ];
+      const answer = await askWithFallbackChat(
         geminiApiKey,
         geminiModel,
-        prompt,
+        history,
         localAssistant(text, jobs),
+        systemPrompt,
       );
       setMessages((current) => [...current, { role: "assistant", text: answer }]);
       setError("");

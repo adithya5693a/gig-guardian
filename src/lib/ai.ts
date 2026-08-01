@@ -3,6 +3,11 @@ import { fairness, type Job } from "./jobs-store";
 export const GIGSHIELD_AI_SYSTEM_PROMPT =
   "You are GigShield, a helpful assistant for Indian gig workers. Always respond using Indian Rupees (₹) and kilometers (km). Never use dollars ($) or miles under any circumstance. Use simple, practical language and never present an estimate as legal proof.";
 
+export const GIGSHIELD_CHAT_SYSTEM_PROMPT =
+  "You are GigShield, a friendly AI assistant for Indian gig workers. You can answer questions about fares, earnings, safety, complaints, working hours, savings, taxes and more — using the worker's job data when provided. You can also answer general questions (travel, health, money, local laws, food, technology, and anything else). If you do not know something, say so honestly instead of guessing. Always respond using Indian Rupees (₹) and kilometers (km); never use dollars ($) or miles. Use simple, practical language and never present an estimate as legal proof.";
+
+export type ChatMessage = { role: "user" | "assistant"; text: string };
+
 function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : String(error);
 }
@@ -31,6 +36,15 @@ export async function askGemini(
   prompt: string,
   systemPrompt = GIGSHIELD_AI_SYSTEM_PROMPT,
 ) {
+  return askGeminiChat(apiKey, model, [{ role: "user", text: prompt }], systemPrompt);
+}
+
+export async function askGeminiChat(
+  apiKey: string,
+  model: string,
+  messages: ChatMessage[],
+  systemPrompt = GIGSHIELD_CHAT_SYSTEM_PROMPT,
+) {
   const activeKey = apiKey.trim() || getGeminiApiKey();
   if (!activeKey || activeKey === "your_gemini_api_key_here") {
     throw new Error("Gemini API key is missing");
@@ -42,7 +56,10 @@ export async function askGemini(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: systemPrompt }] },
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        contents: messages.map((message) => ({
+          role: message.role === "assistant" ? "model" : "user",
+          parts: [{ text: message.text }],
+        })),
       }),
     },
   );
@@ -71,7 +88,34 @@ export async function askLmStudio(prompt: string, systemPrompt = GIGSHIELD_AI_SY
         { role: "user", content: prompt },
       ],
       temperature: 0.3,
-      max_tokens: 300,
+      max_tokens: 600,
+    }),
+  });
+  if (!response.ok) throw new Error(`LM Studio request failed (${response.status})`);
+  const data = await response.json();
+  const answer = data.choices?.[0]?.message?.content?.trim();
+  if (!answer) throw new Error("LM Studio returned no answer");
+  return answer as string;
+}
+
+export async function askLmStudioChat(
+  messages: ChatMessage[],
+  systemPrompt = GIGSHIELD_CHAT_SYSTEM_PROMPT,
+) {
+  const endpoint =
+    import.meta.env.VITE_LM_STUDIO_URL || "http://127.0.0.1:1234/v1/chat/completions";
+  const model = import.meta.env.VITE_LM_STUDIO_MODEL || "Qwen2.5-Coder-7B-Instruct-4bit";
+  const response = await fetchWithTimeout(endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model,
+      messages: [
+        { role: "system", content: systemPrompt },
+        ...messages.map((message) => ({ role: message.role, content: message.text })),
+      ],
+      temperature: 0.3,
+      max_tokens: 600,
     }),
   });
   if (!response.ok) throw new Error(`LM Studio request failed (${response.status})`);
@@ -122,20 +166,53 @@ export async function askWithFallback(
     .answer;
 }
 
+export async function askWithFallbackChat(
+  apiKey: string,
+  geminiModel: string,
+  messages: ChatMessage[],
+  localFallback: string,
+  systemPrompt = GIGSHIELD_CHAT_SYSTEM_PROMPT,
+) {
+  let geminiError = "";
+  try {
+    return await askGeminiChat(apiKey, geminiModel, messages, systemPrompt);
+  } catch (error) {
+    geminiError = errorMessage(error);
+  }
+  try {
+    return await askLmStudioChat(messages, systemPrompt);
+  } catch (error) {
+    return `${localFallback}\n\n(Gemini: ${geminiError}; LM Studio: ${errorMessage(error)})`;
+  }
+}
+
 export function localAssistant(question: string, jobs: Job[]) {
   const q = question.toLowerCase();
   const earnings = jobs.reduce((sum, job) => sum + job.fare, 0);
   const hours = jobs.reduce((sum, job) => sum + job.minutes, 0) / 60;
   const flagged = jobs.filter((job) => fairness(job).flagged).length;
+  const greetings = ["hello", "hi ", "hey", "namaste", "good morning", "good evening"];
+  if (greetings.some((g) => q.includes(g)))
+    return "Hello! I'm GigShield. Ask me anything about your gig work — fares, earnings, safety, complaints — or any other question, and I'll do my best to help.";
   if (q.includes("earn") || q.includes("hour"))
     return `You have earned ₹${earnings.toFixed(0)} across ${jobs.length} jobs and worked ${hours.toFixed(1)} hours.`;
   if (q.includes("fair") || q.includes("underpay"))
     return `${flagged} job(s) may need a payout review. GigShield compares payout with a transparent distance-and-time estimate; it is not legal proof.`;
   if (q.includes("complaint") || q.includes("right"))
     return "Keep screenshots, trip IDs, timestamps, and payout records. Ask the platform for a written payout review.";
+  if (q.includes("tax"))
+    return "In India, gig earnings are taxable income. Track every payout, maintain expense records (fuel, maintenance, mobile data), and consult a chartered accountant for the right deductions. This is general guidance, not legal advice.";
+  if (q.includes("save") || q.includes("saving"))
+    return `Across ${jobs.length} jobs you have earned ₹${earnings.toFixed(0)}. Try setting aside 10–20% of every fare and set a daily savings target on your dashboard.`;
+  if (q.includes("safe") || q.includes("danger"))
+    return "For safety: share your live location with a trusted contact, avoid remote pickups at night, and use the Safety check button on the dashboard to prepare an alert.";
+  if (q.includes("night"))
+    return "Night shifts usually pay better but have higher risk. Review each night job's per-km rate on your dashboard to see whether the extra pay was fair.";
+  if (q.includes("fuel") || q.includes("petrol") || q.includes("diesel") || q.includes("expense"))
+    return "Track fuel and maintenance separately from earnings. A common rule is to subtract fuel and vehicle costs from gross earnings before treating the rest as income.";
   if (q.includes("break") || q.includes("tired"))
     return "You deserve a break. Drink water, rest, and avoid riding when exhausted.";
-  return "I can help with fare fairness, earnings, complaints, working hours, safety, and savings. Try asking: Was my fare fair?";
+  return `I'm currently working offline, so I can best answer questions about your gig data — earnings (₹${earnings.toFixed(0)} across ${jobs.length} jobs), fare fairness, complaints, safety, and savings. When the AI service is available I can answer any question. Try asking: Was my fare fair?`;
 }
 
 export function jobsContext(jobs: Job[]) {
