@@ -186,6 +186,8 @@ const extraTranslations: Partial<Record<Language, Record<string, string>>> = {
       "AI उत्तरों के लिए अपनी Gemini API कुंजी जोड़ें।",
     "Save key": "कुंजी सेव करें",
     "Get a free API key at Google AI Studio": "Google AI Studio से मुफ्त API कुंजी प्राप्त करें",
+    "AI connected": "AI कनेक्टेड",
+    "Change API key": "API कुंजी बदलें",
   },
   kn: {
     "Set up your work plan first": "ಮೊದಲು ನಿಮ್ಮ ಕೆಲಸದ ಯೋಜನೆಯನ್ನು ಹೊಂದಿಸಿ",
@@ -287,6 +289,8 @@ const extraTranslations: Partial<Record<Language, Record<string, string>>> = {
     "Add your Gemini API key to enable AI answers.": "AI ಉತ್ತರಗಳಿಗಾಗಿ ನಿಮ್ಮ Gemini API ಕೀ ಸೇರಿಸಿ.",
     "Save key": "ಕೀ ಉಳಿಸಿ",
     "Get a free API key at Google AI Studio": "Google AI Studio ನಲ್ಲಿ ಉಚಿತ API ಕೀ ಪಡೆಯಿರಿ",
+    "AI connected": "AI ಸಂಪರ್ಕಗೊಂಡಿದೆ",
+    "Change API key": "API ಕೀ ಬದಲಿಸಿ",
   },
   ta: {
     "Set up your work plan first": "முதலில் உங்கள் வேலைத் திட்டத்தை அமைக்கவும்",
@@ -326,6 +330,8 @@ const extraTranslations: Partial<Record<Language, Record<string, string>>> = {
       "AI பதில்களுக்கு உங்கள் Gemini API விசையைச் சேர்க்கவும்.",
     "Save key": "விசையைச் சேமி",
     "Get a free API key at Google AI Studio": "Google AI Studio இல் இலவச API விசையைப் பெறுங்கள்",
+    "AI connected": "AI இணைக்கப்பட்டது",
+    "Change API key": "API விசையை மாற்றவும்",
   },
   te: {
     "Set up your work plan first": "ముందుగా మీ పని ప్రణాళికను సెటప్ చేయండి",
@@ -365,6 +371,8 @@ const extraTranslations: Partial<Record<Language, Record<string, string>>> = {
       "AI సమాధానాల కోసం మీ Gemini API కీని జోడించండి.",
     "Save key": "కీని సేవ్ చేయండి",
     "Get a free API key at Google AI Studio": "Google AI Studioలో ఉచిత API కీని పొందండి",
+    "AI connected": "AI కనెక్ట్ అయ్యింది",
+    "Change API key": "API కీని మార్చండి",
   },
   mr: {
     "Set up your work plan first": "प्रथम तुमचा कामाचा प्लॅन सेट करा",
@@ -403,6 +411,8 @@ const extraTranslations: Partial<Record<Language, Record<string, string>>> = {
     "Add your Gemini API key to enable AI answers.": "AI उत्तरांसाठी तुमची Gemini API की जोडा.",
     "Save key": "की सेव्ह करा",
     "Get a free API key at Google AI Studio": "Google AI Studio वर मोफत API की मिळवा",
+    "AI connected": "AI कनेक्ट केले आहे",
+    "Change API key": "API की बदला",
   },
   bn: {
     "Set up your work plan first": "প্রথমে আপনার কাজের পরিকল্পনা সেট করুন",

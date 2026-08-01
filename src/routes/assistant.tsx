@@ -26,6 +26,7 @@ function Assistant() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [draftKey, setDraftKey] = useState(geminiApiKey);
+  const [showKeySettings, setShowKeySettings] = useState(false);
 
   async function send(value = question) {
     const text = value.trim();
@@ -74,7 +75,27 @@ function Assistant() {
         </button>
       </div>
 
-      {!geminiApiKey ? (
+      {geminiApiKey ? (
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <p className="flex items-center gap-1.5 text-xs font-bold text-success">
+            <span className="grid h-5 w-5 place-items-center rounded-full bg-success/15 text-[10px]">
+              ✓
+            </span>
+            {translate("AI connected")}
+          </p>
+          <button
+            onClick={() => {
+              setDraftKey(geminiApiKey);
+              setShowKeySettings((value) => !value);
+            }}
+            className="rounded-full border border-border px-3 py-1.5 text-xs font-bold hover:bg-secondary"
+          >
+            {translate("Change API key")}
+          </button>
+        </div>
+      ) : null}
+
+      {!geminiApiKey || showKeySettings ? (
         <div className="mt-4 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4">
           <p className="text-sm font-bold">{translate("Connect AI")}</p>
           <p className="mt-1 text-xs text-muted-foreground">
@@ -93,6 +114,7 @@ function Assistant() {
                 if (draftKey.trim()) {
                   setGeminiApiKey(draftKey.trim());
                   setDraftKey("");
+                  setShowKeySettings(false);
                 }
               }}
               className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
