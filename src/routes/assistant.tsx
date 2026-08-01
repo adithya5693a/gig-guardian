@@ -20,7 +20,7 @@ type Message = { role: "user" | "assistant"; text: string };
 
 function Assistant() {
   const { jobs, geminiApiKey, setGeminiApiKey, geminiModel } = useJobs();
-  const { language, t } = useI18n();
+  const { language, t, translate } = useI18n();
   const [messages, setMessages] = useState<Message[]>([]);
   const [question, setQuestion] = useState("");
   const [busy, setBusy] = useState(false);
@@ -76,8 +76,10 @@ function Assistant() {
 
       {!geminiApiKey ? (
         <div className="mt-4 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4">
-          <p className="text-sm font-bold">{t("connectAI")}</p>
-          <p className="mt-1 text-xs text-muted-foreground">{t("connectAIHint")}</p>
+          <p className="text-sm font-bold">{translate("Connect AI")}</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {translate("Add your Gemini API key to enable AI answers.")}
+          </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <input
               type="password"
@@ -88,11 +90,14 @@ function Assistant() {
             />
             <button
               onClick={() => {
-                if (draftKey.trim()) setGeminiApiKey(draftKey.trim());
+                if (draftKey.trim()) {
+                  setGeminiApiKey(draftKey.trim());
+                  setDraftKey("");
+                }
               }}
               className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
             >
-              {t("saveKey")}
+              {translate("Save key")}
             </button>
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
@@ -102,7 +107,7 @@ function Assistant() {
               rel="noreferrer"
               className="underline"
             >
-              {t("getFreeKey")}
+              {translate("Get a free API key at Google AI Studio")}
             </a>
           </p>
         </div>
