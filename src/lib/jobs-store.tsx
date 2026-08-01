@@ -18,6 +18,8 @@ export type Job = {
   source?: "manual" | "ocr";
 };
 
+export type SavingEntry = { id: string; amount: number; date: string };
+
 export const VEHICLE_BENCHMARKS: Record<VehicleType, { benchmark: number; flagThreshold: number }> =
   {
     Bike: { benchmark: 15, flagThreshold: 12 },
@@ -142,6 +144,9 @@ type JobsContextValue = {
   jobsToLog: number;
   setupComplete: boolean;
   savingsGoal: number;
+  dailySavingTarget: number;
+  autoSavePercent: number;
+  savingsLog: SavingEntry[];
   geminiApiKey: string;
   geminiModel: string;
   addJob: (job: Omit<Job, "id">) => void;
@@ -149,6 +154,10 @@ type JobsContextValue = {
   completeSetup: (jobsToLog: number) => void;
   resetSetup: () => void;
   setSavingsGoal: (goal: number) => void;
+  setDailySavingTarget: (target: number) => void;
+  setAutoSavePercent: (percent: number) => void;
+  addSavingEntry: (amount: number, date: string) => void;
+  removeSavingEntry: (id: string) => void;
   setGeminiApiKey: (key: string) => void;
   setGeminiModel: (model: string) => void;
 };
@@ -180,6 +189,9 @@ export function JobsProvider({ children }: { children: ReactNode }) {
   const [jobsToLog, setJobsToLog] = useState(1);
   const [setupComplete, setSetupComplete] = useState(false);
   const [savingsGoal, setSavingsGoal] = useState(5000);
+  const [dailySavingTarget, setDailySavingTarget] = useState(300);
+  const [autoSavePercent, setAutoSavePercent] = useState(10);
+  const [savingsLog, setSavingsLog] = useState<SavingEntry[]>([]);
   const [geminiApiKey, setGeminiApiKey] = useState(() => getApiKey());
   const [geminiModel, setGeminiModel] = useState(configuredGeminiModel);
   const [hydrated, setHydrated] = useState(false);
@@ -198,6 +210,9 @@ export function JobsProvider({ children }: { children: ReactNode }) {
         setJobsToLog(saved.jobsToLog ?? 1);
         setSetupComplete(Boolean(saved.setupComplete));
         setSavingsGoal(saved.savingsGoal ?? 5000);
+        setDailySavingTarget(saved.dailySavingTarget ?? 300);
+        setAutoSavePercent(saved.autoSavePercent ?? 10);
+        setSavingsLog(Array.isArray(saved.savingsLog) ? saved.savingsLog : []);
         setGeminiModel(saved.geminiModel ?? "gemini-2.0-flash");
       }
     } catch {
@@ -210,9 +225,28 @@ export function JobsProvider({ children }: { children: ReactNode }) {
     if (!hydrated) return;
     localStorage.setItem(
       storageKey,
-      JSON.stringify({ jobs, jobsToLog, setupComplete, savingsGoal, geminiModel }),
+      JSON.stringify({
+        jobs,
+        jobsToLog,
+        setupComplete,
+        savingsGoal,
+        dailySavingTarget,
+        autoSavePercent,
+        savingsLog,
+        geminiModel,
+      }),
     );
-  }, [hydrated, jobs, jobsToLog, setupComplete, savingsGoal, geminiModel]);
+  }, [
+    hydrated,
+    jobs,
+    jobsToLog,
+    setupComplete,
+    savingsGoal,
+    dailySavingTarget,
+    autoSavePercent,
+    savingsLog,
+    geminiModel,
+  ]);
 
   const value = useMemo<JobsContextValue>(
     () => ({
@@ -220,6 +254,9 @@ export function JobsProvider({ children }: { children: ReactNode }) {
       jobsToLog,
       setupComplete,
       savingsGoal,
+      dailySavingTarget,
+      autoSavePercent,
+      savingsLog,
       geminiApiKey,
       geminiModel,
       addJob: (job) =>
@@ -239,10 +276,25 @@ export function JobsProvider({ children }: { children: ReactNode }) {
         setJobsToLog(1);
       },
       setSavingsGoal,
+      setDailySavingTarget,
+      setAutoSavePercent,
+      addSavingEntry: (amount, date) =>
+        setSavingsLog((prev) => [{ id: crypto.randomUUID(), amount, date }, ...prev]),
+      removeSavingEntry: (id) => setSavingsLog((prev) => prev.filter((entry) => entry.id !== id)),
       setGeminiApiKey,
       setGeminiModel,
     }),
-    [jobs, jobsToLog, setupComplete, savingsGoal, geminiApiKey, geminiModel],
+    [
+      jobs,
+      jobsToLog,
+      setupComplete,
+      savingsGoal,
+      dailySavingTarget,
+      autoSavePercent,
+      savingsLog,
+      geminiApiKey,
+      geminiModel,
+    ],
   );
 
   return <JobsContext.Provider value={value}>{children}</JobsContext.Provider>;
