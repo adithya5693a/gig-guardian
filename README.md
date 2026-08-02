@@ -15,7 +15,7 @@ The application is designed for local development first. It currently stores job
 - Community benchmark sample counts for transparency
 - Safety check and savings-goal tools
 - AI chat for fare, earnings, complaints, safety, and savings questions
-- Gemini integration with LM Studio/Qwen fallback
+- OpenRouter + Gemini integration with LM Studio/Qwen fallback
 - Local rule-based fallback when both AI services are unavailable
 - English, Hindi, Kannada, Tamil, Telugu, Marathi, and Bengali interface options
 - Responsive dark interface optimized for mobile use
@@ -70,7 +70,18 @@ http://localhost:5173
 
 ## AI configuration
 
-The project supports Gemini first, then LM Studio, then a deterministic local assistant.
+The project supports OpenRouter first, then Gemini, then LM Studio, then a deterministic local assistant. You can add your OpenRouter API key directly in the AI chat screen, or configure it in the environment.
+
+### OpenRouter (recommended)
+
+Create an OpenRouter API key at [OpenRouter settings](https://openrouter.ai/settings/keys), or paste it in the AI chat screen. Keep the key local and never commit it to GitHub.
+
+For local development, use an ignored environment file such as `.env.local`:
+
+```env
+VITE_OPENROUTER_API_KEY=your_real_openrouter_key
+VITE_OPENROUTER_MODEL=openai/gpt-4o-mini
+```
 
 ### Gemini
 
@@ -109,7 +120,7 @@ VITE_LM_STUDIO_MODEL=Qwen2.5-Coder-7B-Instruct-4bit
 The request sequence is:
 
 ```text
-Gemini → LM Studio/Qwen → local rule-based assistant
+OpenRouter → Gemini → LM Studio/Qwen → local rule-based assistant
 ```
 
 If LM Studio is not running, the application continues using the local assistant.
@@ -189,7 +200,7 @@ src/
 
 Job records are currently stored in browser `localStorage`. There is no authentication or server database in the current version.
 
-The OCR pipeline runs locally in the browser. Gemini requests send the chat prompt and relevant job context to the configured Gemini endpoint. LM Studio requests remain on the local machine.
+The OCR pipeline runs locally in the browser. AI requests send the chat prompt and relevant job context to the configured OpenRouter endpoint (falling back to Gemini, then LM Studio). LM Studio requests remain on the local machine.
 
 For production:
 
@@ -240,4 +251,3 @@ npm run build
 ## License
 
 No license has been specified yet. Add a license file before distributing the project publicly.
-

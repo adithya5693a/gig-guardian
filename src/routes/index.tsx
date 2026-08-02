@@ -84,7 +84,7 @@ function Setup() {
 }
 
 function ThisWeeksInsight() {
-  const { jobs: allJobs, geminiApiKey, geminiModel } = useJobs();
+  const { jobs: allJobs, geminiApiKey, geminiModel, openRouterApiKey } = useJobs();
   const { translate, language } = useI18n();
   const [insight, setInsight] = useState("");
   const [busy, setBusy] = useState(false);
@@ -157,6 +157,7 @@ function ThisWeeksInsight() {
       const prompt = `Write a supportive, practical 2-4 sentence summary of the worker's week. Identify underpayment patterns by time, platform, or vehicle, compare earnings to last week, and explain what made the best-paying trip different from the lowest-rate trip. Use only the structured data below.\nStructured data: ${JSON.stringify(structuredData)}`;
 
       const result = await askWithFallbackDetailed(
+        openRouterApiKey,
         geminiApiKey,
         geminiModel,
         prompt,
@@ -168,7 +169,7 @@ function ThisWeeksInsight() {
       setInsight(fallback);
     }
     setBusy(false);
-  }, [thisWeekJobs, lastWeekJobs, geminiApiKey, geminiModel, language]);
+  }, [thisWeekJobs, lastWeekJobs, geminiApiKey, geminiModel, openRouterApiKey, language]);
 
   // Auto-generate on mount / data change if threshold is met
   useEffect(() => {
@@ -225,7 +226,7 @@ function ThisWeeksInsight() {
 }
 
 function ComplaintSupport({ flagged }: { flagged: Job[] }) {
-  const { geminiApiKey, geminiModel } = useJobs();
+  const { geminiApiKey, geminiModel, openRouterApiKey } = useJobs();
   const { translate } = useI18n();
   const [selected, setSelected] = useState(flagged[0]?.id ?? "");
   const [draft, setDraft] = useState("");
@@ -239,6 +240,7 @@ function ComplaintSupport({ flagged }: { flagged: Job[] }) {
     try {
       setDraft(
         (await askWithFallback(
+          openRouterApiKey,
           geminiApiKey,
           geminiModel,
           `Write a concise polite payout-review complaint. Include platform ${job.platform}, vehicle ${result.vehicleType}, date, fare ₹${job.fare}, distance ${job.distance} km, duration ${job.minutes} minutes, vehicle benchmark ₹${result.benchmark}/km, estimated fare ₹${result.expected}, and request a review.`,

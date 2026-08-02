@@ -149,6 +149,7 @@ type JobsContextValue = {
   savingsLog: SavingEntry[];
   geminiApiKey: string;
   geminiModel: string;
+  openRouterApiKey: string;
   addJob: (job: Omit<Job, "id">) => void;
   removeJob: (id: string) => void;
   completeSetup: (jobsToLog: number) => void;
@@ -160,6 +161,7 @@ type JobsContextValue = {
   removeSavingEntry: (id: string) => void;
   setGeminiApiKey: (key: string) => void;
   setGeminiModel: (model: string) => void;
+  setOpenRouterApiKey: (key: string) => void;
 };
 
 const JobsContext = createContext<JobsContextValue | null>(null);
@@ -169,19 +171,28 @@ const storageKey = "gigshield-state-v2";
 function envExampleValue(name: string) {
   const line = envExample.split(/\r?\n/).find((item) => item.startsWith(`${name}=`));
   const value = line?.slice(name.length + 1).trim() ?? "";
-  return value === "your_gemini_api_key_here" ? "" : value;
+  return value.endsWith("_api_key_here") ? "" : value;
 }
 
 const configuredGeminiApiKey =
   import.meta.env.VITE_GEMINI_API_KEY || envExampleValue("VITE_GEMINI_API_KEY");
 const configuredGeminiModel =
   import.meta.env.VITE_GEMINI_MODEL || envExampleValue("VITE_GEMINI_MODEL") || "gemini-2.0-flash";
+const configuredOpenRouterApiKey =
+  import.meta.env.VITE_OPENROUTER_API_KEY || envExampleValue("VITE_OPENROUTER_API_KEY");
 
 const getApiKey = () => {
   if (typeof process !== "undefined" && process.env?.GEMINI_API_KEY) {
     return process.env.GEMINI_API_KEY;
   }
   return configuredGeminiApiKey;
+};
+
+const getOpenRouterKey = () => {
+  if (typeof process !== "undefined" && process.env?.OPENROUTER_API_KEY) {
+    return process.env.OPENROUTER_API_KEY;
+  }
+  return configuredOpenRouterApiKey;
 };
 
 export function JobsProvider({ children }: { children: ReactNode }) {
@@ -194,6 +205,7 @@ export function JobsProvider({ children }: { children: ReactNode }) {
   const [savingsLog, setSavingsLog] = useState<SavingEntry[]>([]);
   const [geminiApiKey, setGeminiApiKey] = useState(() => getApiKey());
   const [geminiModel, setGeminiModel] = useState(configuredGeminiModel);
+  const [openRouterApiKey, setOpenRouterApiKey] = useState(() => getOpenRouterKey());
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -215,6 +227,7 @@ export function JobsProvider({ children }: { children: ReactNode }) {
         setSavingsLog(Array.isArray(saved.savingsLog) ? saved.savingsLog : []);
         setGeminiApiKey(saved.geminiApiKey ?? getApiKey());
         setGeminiModel(saved.geminiModel ?? "gemini-2.0-flash");
+        setOpenRouterApiKey(saved.openRouterApiKey ?? getOpenRouterKey());
       }
     } catch {
       // A fresh in-memory session is still usable when storage is unavailable.
@@ -236,6 +249,7 @@ export function JobsProvider({ children }: { children: ReactNode }) {
         savingsLog,
         geminiApiKey,
         geminiModel,
+        openRouterApiKey,
       }),
     );
   }, [
@@ -249,6 +263,7 @@ export function JobsProvider({ children }: { children: ReactNode }) {
     savingsLog,
     geminiApiKey,
     geminiModel,
+    openRouterApiKey,
   ]);
 
   const value = useMemo<JobsContextValue>(
@@ -262,6 +277,7 @@ export function JobsProvider({ children }: { children: ReactNode }) {
       savingsLog,
       geminiApiKey,
       geminiModel,
+      openRouterApiKey,
       addJob: (job) =>
         setJobs((prev) =>
           [{ ...job, id: crypto.randomUUID() }, ...prev].sort(
@@ -286,6 +302,7 @@ export function JobsProvider({ children }: { children: ReactNode }) {
       removeSavingEntry: (id) => setSavingsLog((prev) => prev.filter((entry) => entry.id !== id)),
       setGeminiApiKey,
       setGeminiModel,
+      setOpenRouterApiKey,
     }),
     [
       jobs,
@@ -297,6 +314,7 @@ export function JobsProvider({ children }: { children: ReactNode }) {
       savingsLog,
       geminiApiKey,
       geminiModel,
+      openRouterApiKey,
     ],
   );
 

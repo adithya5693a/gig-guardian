@@ -186,6 +186,10 @@ const extraTranslations: Partial<Record<Language, Record<string, string>>> = {
       "AI उत्तरों के लिए अपनी Gemini API कुंजी जोड़ें।",
     "Save key": "कुंजी सेव करें",
     "Get a free API key at Google AI Studio": "Google AI Studio से मुफ्त API कुंजी प्राप्त करें",
+    "Get a free API key at OpenRouter": "OpenRouter से मुफ्त API कुंजी प्राप्त करें",
+    "Add your OpenRouter API key to enable AI answers.":
+      "AI उत्तरों के लिए अपनी OpenRouter API कुंजी जोड़ें।",
+    "Gemini API key (optional fallback)": "Gemini API कुंजी (वैकल्पिक बैकअप)",
     "AI connected": "AI कनेक्टेड",
     "Change API key": "API कुंजी बदलें",
   },
@@ -289,6 +293,10 @@ const extraTranslations: Partial<Record<Language, Record<string, string>>> = {
     "Add your Gemini API key to enable AI answers.": "AI ಉತ್ತರಗಳಿಗಾಗಿ ನಿಮ್ಮ Gemini API ಕೀ ಸೇರಿಸಿ.",
     "Save key": "ಕೀ ಉಳಿಸಿ",
     "Get a free API key at Google AI Studio": "Google AI Studio ನಲ್ಲಿ ಉಚಿತ API ಕೀ ಪಡೆಯಿರಿ",
+    "Get a free API key at OpenRouter": "OpenRouter ನಲ್ಲಿ ಉಚಿತ API ಕೀ ಪಡೆಯಿರಿ",
+    "Add your OpenRouter API key to enable AI answers.":
+      "AI ಉತ್ತರಗಳಿಗಾಗಿ ನಿಮ್ಮ OpenRouter API ಕೀ ಸೇರಿಸಿ.",
+    "Gemini API key (optional fallback)": "Gemini API ಕೀ (ಐಚ್ಛಿಕ ಬ್ಯಾಕಪ್)",
     "AI connected": "AI ಸಂಪರ್ಕಗೊಂಡಿದೆ",
     "Change API key": "API ಕೀ ಬದಲಿಸಿ",
   },
@@ -330,6 +338,10 @@ const extraTranslations: Partial<Record<Language, Record<string, string>>> = {
       "AI பதில்களுக்கு உங்கள் Gemini API விசையைச் சேர்க்கவும்.",
     "Save key": "விசையைச் சேமி",
     "Get a free API key at Google AI Studio": "Google AI Studio இல் இலவச API விசையைப் பெறுங்கள்",
+    "Get a free API key at OpenRouter": "OpenRouter இல் இலவச API விசையைப் பெறுங்கள்",
+    "Add your OpenRouter API key to enable AI answers.":
+      "AI பதில்களுக்கு உங்கள் OpenRouter API விசையைச் சேர்க்கவும்.",
+    "Gemini API key (optional fallback)": "Gemini API விசை (விருப்பமான காப்புப்பிரதி)",
     "AI connected": "AI இணைக்கப்பட்டது",
     "Change API key": "API விசையை மாற்றவும்",
   },
@@ -371,6 +383,10 @@ const extraTranslations: Partial<Record<Language, Record<string, string>>> = {
       "AI సమాధానాల కోసం మీ Gemini API కీని జోడించండి.",
     "Save key": "కీని సేవ్ చేయండి",
     "Get a free API key at Google AI Studio": "Google AI Studioలో ఉచిత API కీని పొందండి",
+    "Get a free API key at OpenRouter": "OpenRouterలో ఉచిత API కీని పొందండి",
+    "Add your OpenRouter API key to enable AI answers.":
+      "AI సమాధానాల కోసం మీ OpenRouter API కీని జోడించండి.",
+    "Gemini API key (optional fallback)": "Gemini API కీ (ఐచ్ఛిక బ్యాకప్)",
     "AI connected": "AI కనెక్ట్ అయ్యింది",
     "Change API key": "API కీని మార్చండి",
   },
@@ -411,6 +427,10 @@ const extraTranslations: Partial<Record<Language, Record<string, string>>> = {
     "Add your Gemini API key to enable AI answers.": "AI उत्तरांसाठी तुमची Gemini API की जोडा.",
     "Save key": "की सेव्ह करा",
     "Get a free API key at Google AI Studio": "Google AI Studio वर मोफत API की मिळवा",
+    "Get a free API key at OpenRouter": "OpenRouter वर मोफत API की मिळवा",
+    "Add your OpenRouter API key to enable AI answers.":
+      "AI उत्तरांसाठी तुमची OpenRouter API की जोडा.",
+    "Gemini API key (optional fallback)": "Gemini API की (ऐच्छिक बॅकअप)",
     "AI connected": "AI कनेक्ट केले आहे",
     "Change API key": "API की बदला",
   },
@@ -452,6 +472,10 @@ const extraTranslations: Partial<Record<Language, Record<string, string>>> = {
     "Fair pay ratio": "ন্যায্য পেমেন্ট অনুপাত",
     fair: "ন্যায্য",
     underpaid: "কম পেমেন্ট",
+    "Add your OpenRouter API key to enable AI answers.":
+      "AI উত্তরের জন্য আপনার OpenRouter API কী যোগ করুন।",
+    "Get a free API key at OpenRouter": "OpenRouter-এ বিনামূল্যে API কী পান",
+    "Gemini API key (optional fallback)": "Gemini API কী (ঐচ্ছিক ব্যাকআপ)",
   },
 };
 

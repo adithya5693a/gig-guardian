@@ -45,6 +45,64 @@ export function getGeminiApiKey(): string {
   return "";
 }
 
+export function getOpenRouterApiKey(): string {
+  if (typeof process !== "undefined" && process.env?.OPENROUTER_API_KEY) {
+    return process.env.OPENROUTER_API_KEY;
+  }
+  if (import.meta.env?.VITE_OPENROUTER_API_KEY) return import.meta.env.VITE_OPENROUTER_API_KEY;
+  return "";
+}
+
+export const DEFAULT_OPENROUTER_MODEL =
+  import.meta.env.VITE_OPENROUTER_MODEL || "openai/gpt-4o-mini";
+
+export async function askOpenRouter(
+  apiKey: string,
+  model: string,
+  prompt: string,
+  systemPrompt = GIGSHIELD_AI_SYSTEM_PROMPT,
+) {
+  return askOpenRouterChat(apiKey, model, [{ role: "user", text: prompt }], systemPrompt);
+}
+
+export async function askOpenRouterChat(
+  apiKey: string,
+  model: string,
+  messages: ChatMessage[],
+  systemPrompt = GIGSHIELD_CHAT_SYSTEM_PROMPT,
+) {
+  const activeKey = apiKey.trim() || getOpenRouterApiKey();
+  if (!activeKey) throw new Error("OpenRouter API key is missing");
+  const activeModel = model.trim() || DEFAULT_OPENROUTER_MODEL;
+  const response = await fetchWithTimeout("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${activeKey}`,
+    },
+    body: JSON.stringify({
+      model: activeModel,
+      messages: [
+        { role: "system", content: systemPrompt },
+        ...messages.map((message) => ({ role: message.role, content: message.text })),
+      ],
+      temperature: 0.3,
+      max_tokens: 700,
+    }),
+  });
+  if (!response.ok) {
+    throw new Error(
+      response.status === 429
+        ? "OpenRouter is rate-limited (429). Wait a minute and try again."
+        : `OpenRouter request failed (${response.status})`,
+    );
+  }
+  const data = await response.json();
+  const answer = data.choices?.[0]?.message?.content?.trim();
+  if (!answer) throw new Error("OpenRouter returned an empty answer");
+  return answer as string;
+}
+
 export async function askGemini(
   apiKey: string,
   model: string,
@@ -147,16 +205,26 @@ export async function askLmStudioChat(
 }
 
 export async function askWithFallbackDetailed(
-  apiKey: string,
+  openRouterApiKey: string,
+  geminiApiKey: string,
   geminiModel: string,
   prompt: string,
   localFallback: string,
   systemPrompt = GIGSHIELD_AI_SYSTEM_PROMPT,
 ) {
+  let openRouterError = "";
+  try {
+    return {
+      answer: await askOpenRouter(openRouterApiKey, DEFAULT_OPENROUTER_MODEL, prompt, systemPrompt),
+      source: "openrouter" as const,
+    };
+  } catch (error) {
+    openRouterError = errorMessage(error);
+  }
   let geminiError = "";
   try {
     return {
-      answer: await askGemini(apiKey, geminiModel, prompt, systemPrompt),
+      answer: await askGemini(geminiApiKey, geminiModel, prompt, systemPrompt),
       source: "gemini" as const,
     };
   } catch (error) {
@@ -171,41 +239,63 @@ export async function askWithFallbackDetailed(
     return {
       answer: localFallback,
       source: "local" as const,
-      error: `Gemini: ${geminiError}; LM Studio: ${errorMessage(error)}`,
+      error: `OpenRouter: ${openRouterError}; Gemini: ${geminiError}; LM Studio: ${errorMessage(error)}`,
     };
   }
 }
 
 export async function askWithFallback(
-  apiKey: string,
+  openRouterApiKey: string,
+  geminiApiKey: string,
   geminiModel: string,
   prompt: string,
   localFallback: string,
   systemPrompt = GIGSHIELD_AI_SYSTEM_PROMPT,
 ) {
-  return (await askWithFallbackDetailed(apiKey, geminiModel, prompt, localFallback, systemPrompt))
-    .answer;
+  return (
+    await askWithFallbackDetailed(
+      openRouterApiKey,
+      geminiApiKey,
+      geminiModel,
+      prompt,
+      localFallback,
+      systemPrompt,
+    )
+  ).answer;
 }
 
 export async function askWithFallbackChat(
-  apiKey: string,
+  openRouterApiKey: string,
+  geminiApiKey: string,
   geminiModel: string,
   messages: ChatMessage[],
   localFallback: string,
   systemPrompt = GIGSHIELD_CHAT_SYSTEM_PROMPT,
 ) {
+  let openRouterError = "";
+  try {
+    return await askOpenRouterChat(
+      openRouterApiKey,
+      DEFAULT_OPENROUTER_MODEL,
+      messages,
+      systemPrompt,
+    );
+  } catch (error) {
+    openRouterError = errorMessage(error);
+  }
   let geminiError = "";
   try {
-    return await askGeminiChat(apiKey, geminiModel, messages, systemPrompt);
+    return await askGeminiChat(geminiApiKey, geminiModel, messages, systemPrompt);
   } catch (error) {
     geminiError = errorMessage(error);
   }
   try {
     return await askLmStudioChat(messages, systemPrompt);
   } catch (error) {
-    const reason = geminiError.includes("429")
-      ? "AI is busy right now — wait a minute and try again"
-      : `AI is unavailable (${geminiError})`;
+    const reason =
+      geminiError.includes("429") || openRouterError.includes("429")
+        ? "AI is busy right now — wait a minute and try again"
+        : `AI is unavailable (${openRouterError})`;
     return `${localFallback}\n\n(${reason})`;
   }
 }
