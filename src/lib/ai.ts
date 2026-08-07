@@ -312,7 +312,7 @@ export function localAssistant(question: string, jobs: Job[], language: Language
   const q = question.toLowerCase();
   const earnings = jobs.reduce((sum, job) => sum + job.fare, 0);
   const hours = jobs.reduce((sum, job) => sum + job.minutes, 0) / 60;
-  const flagged = jobs.filter((job) => fairness(job).flagged).length;
+  const flagged = jobs.filter((job) => fairness(job, jobs).flagged).length;
   const greetings = ["hello", "hi ", "hey", "namaste", "good morning", "good evening"];
   if (greetings.some((g) => q.includes(g)))
     return t(

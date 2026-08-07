@@ -117,7 +117,7 @@ function ThisWeeksInsight() {
         ? ` Your best-paying ride was on ${bestJob.platform} (₹${(bestJob.fare / bestJob.distance).toFixed(1)}/km), while your lowest rate was on ${worstJob.platform} (₹${(worstJob.fare / worstJob.distance).toFixed(1)}/km).`
         : "";
 
-    const flaggedCount = thisWeekJobs.filter((j) => fairness(j).flagged).length;
+    const flaggedCount = thisWeekJobs.filter((j) => fairness(j, allJobs).flagged).length;
     const underpayMessage =
       flaggedCount > 0
         ? ` ${flaggedCount} of your jobs had potential underpayment; review night shifts and Zomato/Swiggy rates.`
@@ -136,7 +136,7 @@ function ThisWeeksInsight() {
           fareInr: j.fare,
           distanceKm: j.distance,
           rateInrPerKm: j.distance > 0 ? j.fare / j.distance : 0,
-          flagged: fairness(j).flagged,
+          flagged: fairness(j, allJobs).flagged,
           hour: new Date(j.datetime).getHours(),
         })),
         lastWeek: lastWeekJobs.map((j) => ({
@@ -145,7 +145,7 @@ function ThisWeeksInsight() {
           fareInr: j.fare,
           distanceKm: j.distance,
           rateInrPerKm: j.distance > 0 ? j.fare / j.distance : 0,
-          flagged: fairness(j).flagged,
+          flagged: fairness(j, allJobs).flagged,
         })),
         earningsChangePercent: earningsChange,
       };
@@ -221,7 +221,7 @@ function ThisWeeksInsight() {
   );
 }
 
-function ComplaintSupport({ flagged }: { flagged: Job[] }) {
+function ComplaintSupport({ flagged, jobs }: { flagged: Job[]; jobs: Job[] }) {
   const { geminiApiKey, geminiModel, openRouterApiKey } = useJobs();
   const { translate } = useI18n();
   const [selected, setSelected] = useState(flagged[0]?.id ?? "");
@@ -231,7 +231,7 @@ function ComplaintSupport({ flagged }: { flagged: Job[] }) {
   async function createDraft() {
     if (!job) return;
     setBusy(true);
-    const result = fairness(job);
+    const result = fairness(job, jobs);
     const fallback = `Subject: Request to review payout\n\nHello ${job.platform} Support,\n\nPlease review my payout of ₹${job.fare.toFixed(0)} for the ${job.distance} km ${result.vehicleType} job completed on ${new Date(job.datetime).toLocaleString("en-IN")}. It took ${job.minutes} minutes. GigShield's benchmark for ${result.vehicleType} is ₹${result.benchmark}/km (expected ₹${result.expected.toFixed(0)}). Actual rate was ₹${result.ratePerKm.toFixed(1)}/km, which is below the ₹${result.flagThreshold}/km threshold. Please verify the fare calculation and let me know if an adjustment is due.\n\nThank you.`;
     try {
       setDraft(
@@ -264,7 +264,7 @@ function ComplaintSupport({ flagged }: { flagged: Job[] }) {
           className="rounded-xl border border-input bg-secondary px-3 py-2 text-sm"
         >
           {flagged.map((item) => {
-            const res = fairness(item);
+            const res = fairness(item, jobs);
             return (
               <option key={item.id} value={item.id}>
                 {item.platform} ({res.vehicleType}) · ₹{item.fare} ·{" "}
@@ -580,7 +580,7 @@ function Dashboard() {
   const scoped = period === "week" ? week : jobs;
   const earnings = scoped.reduce((s, j) => s + j.fare, 0);
   const hours = scoped.reduce((s, j) => s + j.minutes, 0) / 60;
-  const flagged = scoped.filter((j) => fairness(j).flagged);
+  const flagged = scoped.filter((j) => fairness(j, jobs).flagged);
   const chart = useMemo(
     () =>
       Array.from({ length: 7 }, (_, index) => {
@@ -670,7 +670,7 @@ function Dashboard() {
         <EarningsChart data={chart} />
         <FairnessRing fair={scoped.length - flagged.length} flagged={flagged.length} />
       </div>
-      <ComplaintSupport flagged={flagged} />
+      <ComplaintSupport flagged={flagged} jobs={jobs} />
       <SafetyAndSavings jobs={jobs} />
       <h2 className="mt-8 text-lg font-bold">{translate("All jobs")}</h2>
       {jobs.length ? (
@@ -696,7 +696,7 @@ function Dashboard() {
             </thead>
             <tbody>
               {jobs.map((job) => {
-                const result = fairness(job);
+                const result = fairness(job, jobs);
                 return (
                   <tr key={job.id} className="border-b border-border/60 last:border-0">
                     <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
@@ -722,7 +722,7 @@ function Dashboard() {
                       </div>
                       <div className="text-xs text-muted-foreground">
                         {result.benchmarkSource === "community"
-                          ? `${translate("Community data")}: ${result.communitySampleSize} ${translate("workers")}`
+                          ? `${translate("Your logged payouts")}: ${result.communitySampleSize} ${translate("jobs")}`
                           : translate("Vehicle baseline")}
                       </div>
                     </td>

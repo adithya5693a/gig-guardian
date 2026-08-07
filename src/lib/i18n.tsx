@@ -686,6 +686,7 @@ const dashboardTranslations: Record<Language, Record<string, string>> = {
     "Enable location permission (HTTPS) for your exact GPS position.":
       "अपनी सटीक GPS लोकेशन के लिए लोकेशन अनुमति (HTTPS) सक्षम करें।",
     "Try again": "फिर से कोशिश करें",
+    "Your logged payouts": "आपकी दर्ज की गई पेआउट राशि",
   },
   kn: {
     "Emergency contact number": "ತುರ್ತು ಸಂಪರ್ಕ ಸಂಖ್ಯೆ",
@@ -709,6 +710,7 @@ const dashboardTranslations: Record<Language, Record<string, string>> = {
     "Enable location permission (HTTPS) for your exact GPS position.":
       "ನಿಮ್ಮ ನಿಖರ GPS ಸ್ಥಳಕ್ಕಾಗಿ ಸ್ಥಳ ಅನುಮತಿಯನ್ನು (HTTPS) ಸಕ್ರಿಯಗೊಳಿಸಿ.",
     "Try again": "ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ",
+    "Your logged payouts": "ನಿಮ್ಮ ದಾಖಲಿಸಿದ ಪಾವತಿಗಳು",
   },
   ta: {
     "Your earnings": "உங்கள் வருமானம்",
@@ -773,6 +775,7 @@ const dashboardTranslations: Record<Language, Record<string, string>> = {
     "Enable location permission (HTTPS) for your exact GPS position.":
       "உங்கள் சரியான GPS இருப்பிடத்திற்கு இருப்பிட அனுமதியை (HTTPS) இயக்கவும்.",
     "Try again": "மீண்டும் முயற்சி",
+    "Your logged payouts": "உங்கள் பதிவு செய்த கட்டணங்கள்",
   },
   te: {
     "Your earnings": "మీ ఆదాయం",
@@ -837,6 +840,7 @@ const dashboardTranslations: Record<Language, Record<string, string>> = {
     "Enable location permission (HTTPS) for your exact GPS position.":
       "మీ ఖచ్చితమైన GPS లొకేషన్ కోసం లొకేషన్ అనుమతిని (HTTPS) ప్రారంభించండి.",
     "Try again": "మళ్లీ ప్రయత్నించండి",
+    "Your logged payouts": "మీ నమోదు చేసిన చెల్లింపులు",
   },
   mr: {
     "Your earnings": "तुमची कमाई",
@@ -901,6 +905,7 @@ const dashboardTranslations: Record<Language, Record<string, string>> = {
     "Enable location permission (HTTPS) for your exact GPS position.":
       "तुमच्या अचूक GPS लोकेशनसाठी लोकेशन परवानगी (HTTPS) सक्षम करा.",
     "Try again": "पुन्हा प्रयत्न करा",
+    "Your logged payouts": "तुमच्या नोंदवलेल्या पेमेंट्स",
   },
   bn: {
     "Emergency contact number": "জরুরি যোগাযোগ নম্বর",
@@ -924,6 +929,7 @@ const dashboardTranslations: Record<Language, Record<string, string>> = {
     "Enable location permission (HTTPS) for your exact GPS position.":
       "আপনার সঠিক GPS অবস্থানের জন্য অবস্থান অনুমতি (HTTPS) সক্রিয় করুন।",
     "Try again": "আবার চেষ্টা করুন",
+    "Your logged payouts": "আপনার লগ করা পেমেন্ট",
   },
 };
 const LanguageContext = createContext<{

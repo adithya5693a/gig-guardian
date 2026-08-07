@@ -153,7 +153,7 @@ function LogJob() {
       source: mode,
     } as const;
     addJob(job);
-    const result = fairness(job);
+    const result = fairness(job, jobs);
     setMessage(
       `${result.status}: actual ₹${f.toFixed(0)} vs estimated fair ₹${result.expected.toFixed(0)} (${activeVehicle} benchmark: ₹${result.benchmark}/km).`,
     );
@@ -466,22 +466,28 @@ function LogJob() {
             {translate("Estimated fair payout:")}{" "}
             <b>
               ₹
-              {fairness({
-                fare: Number(fare),
-                distance: Number(distance),
-                vehicleType: activeVehicle,
-                platform,
-              }).expected.toFixed(0)}
-            </b>
-            <span className="ml-2 text-muted-foreground">
-              ({translate("Community benchmark")}: ₹
-              {
-                fairness({
+              {fairness(
+                {
                   fare: Number(fare),
                   distance: Number(distance),
                   vehicleType: activeVehicle,
                   platform,
-                }).benchmark
+                },
+                jobs,
+              ).expected.toFixed(0)}
+            </b>
+            <span className="ml-2 text-muted-foreground">
+              ({translate("Your logged payouts")}: ₹
+              {
+                fairness(
+                  {
+                    fare: Number(fare),
+                    distance: Number(distance),
+                    vehicleType: activeVehicle,
+                    platform,
+                  },
+                  jobs,
+                ).benchmark
               }
               /km · {activeVehicle})
             </span>
