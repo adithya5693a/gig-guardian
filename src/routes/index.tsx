@@ -290,11 +290,57 @@ function ComplaintSupport({ flagged }: { flagged: Job[] }) {
 }
 
 function SafetyAndSavings({ jobs }: { jobs: Job[] }) {
-  const { savingsGoal, setSavingsGoal, resetSetup } = useJobs();
+  const { savingsGoal, setSavingsGoal, resetSetup, trustedNumber, setTrustedNumber } = useJobs();
   const { translate } = useI18n();
   const earned = jobs.reduce((s, j) => s + j.fare, 0);
   const hours = jobs.reduce((s, j) => s + j.minutes, 0) / 60;
-  const [alertReady, setAlertReady] = useState(false);
+  const [phoneDraft, setPhoneDraft] = useState(trustedNumber);
+  const [locating, setLocating] = useState(false);
+  const [prepared, setPrepared] = useState<{ message: string; locationIncluded: boolean } | null>(
+    null,
+  );
+
+  const digits = trustedNumber.replace(/\D/g, "");
+  const waNumber = digits.length === 10 ? `91${digits}` : digits;
+  const hasContact = digits.length >= 10;
+
+  function getPosition() {
+    return new Promise<{ lat: number; lng: number } | null>((resolve) => {
+      if (!("geolocation" in navigator)) {
+        resolve(null);
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        (position) => resolve({ lat: position.coords.latitude, lng: position.coords.longitude }),
+        () => resolve(null),
+        { enableHighAccuracy: true, maximumAge: 15_000, timeout: 10_000 },
+      );
+    });
+  }
+
+  async function sendEmergency() {
+    if (!hasContact || locating) return;
+    setLocating(true);
+    setPrepared(null);
+    const position = await getPosition();
+    const base = translate("I may be unsafe. Please call me and check my live location.");
+    const locationIncluded = Boolean(position);
+    const message = position
+      ? `${base} ${translate("My live location")}: https://maps.google.com/?q=${position.lat.toFixed(6)},${position.lng.toFixed(6)}`
+      : base;
+    setPrepared({ message, locationIncluded });
+    window.open(
+      `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`,
+      "_blank",
+      "noopener",
+    );
+    setLocating(false);
+  }
+
+  function saveContact() {
+    setTrustedNumber(phoneDraft.replace(/\D/g, ""));
+  }
+
   return (
     <section className="mt-8 grid gap-3 md:grid-cols-2">
       <div className="rounded-3xl border border-border bg-card p-5">
@@ -335,28 +381,75 @@ function SafetyAndSavings({ jobs }: { jobs: Job[] }) {
             {translate("Please take a break and avoid riding exhausted.")}
           </p>
         ) : null}
+        <label className="mt-4 block text-xs font-bold text-muted-foreground">
+          {translate("Emergency contact number")}
+        </label>
+        <div className="mt-2 flex gap-2">
+          <input
+            type="tel"
+            inputMode="tel"
+            value={phoneDraft}
+            onChange={(e) => setPhoneDraft(e.target.value)}
+            placeholder="+91 98765 43210"
+            className="min-w-0 flex-1 rounded-xl border border-input bg-secondary px-3 py-2"
+          />
+          <button
+            onClick={saveContact}
+            disabled={phoneDraft.replace(/\D/g, "").length < 10}
+            className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-40"
+          >
+            {translate("Save phone number")}
+          </button>
+        </div>
+        {hasContact ? (
+          <p className="mt-2 text-xs font-bold text-success">
+            ✓ {translate("Saved contact")}: {trustedNumber}
+          </p>
+        ) : (
+          <p className="mt-2 text-xs text-muted-foreground">
+            {translate("Add an emergency contact number to enable the alert.")}
+          </p>
+        )}
         <button
-          onClick={() => setAlertReady(true)}
-          className="mt-4 w-full rounded-xl border border-destructive/40 px-4 py-2 font-bold text-destructive hover:bg-destructive/10"
+          onClick={() => void sendEmergency()}
+          disabled={!hasContact || locating}
+          className="mt-4 w-full rounded-xl bg-destructive px-4 py-3 font-bold text-destructive-foreground disabled:opacity-40"
         >
-          🚨 {translate("I feel unsafe")}
+          {locating
+            ? translate("Getting your live location…")
+            : `🚨 ${translate("Send emergency alert")}`}
         </button>
-        {alertReady ? (
+        {prepared ? (
           <div className="mt-3 rounded-xl bg-secondary p-3 text-sm">
-            <b>{translate("Alert prepared:")}</b>
-            <p className="mt-1">
-              {translate("I may be unsafe. Please call me and check my live location.")}
-            </p>
-            <button
-              onClick={() =>
-                navigator.clipboard?.writeText(
-                  "I may be unsafe. Please call me and check my live location.",
-                )
-              }
-              className="mt-2 text-xs font-bold underline"
-            >
-              {translate("Copy alert")}
-            </button>
+            <b>{translate("Emergency message ready")}</b>
+            <p className="mt-1 whitespace-pre-line">{prepared.message}</p>
+            {!prepared.locationIncluded ? (
+              <p className="mt-1 text-xs text-muted-foreground">
+                {translate("Location unavailable — message sent without it")}
+              </p>
+            ) : null}
+            <div className="mt-3 flex flex-wrap gap-2">
+              <a
+                href={`https://wa.me/${waNumber}?text=${encodeURIComponent(prepared.message)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground"
+              >
+                {translate("Open WhatsApp")}
+              </a>
+              <a
+                href={`sms:${waNumber}?body=${encodeURIComponent(prepared.message)}`}
+                className="rounded-lg border border-border px-3 py-1.5 text-xs font-bold"
+              >
+                {translate("Send SMS")}
+              </a>
+              <button
+                onClick={() => void navigator.clipboard?.writeText(prepared.message)}
+                className="rounded-lg border border-border px-3 py-1.5 text-xs font-bold"
+              >
+                {translate("Copy message")}
+              </button>
+            </div>
           </div>
         ) : null}
       </div>

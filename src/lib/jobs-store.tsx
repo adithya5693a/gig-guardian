@@ -147,6 +147,7 @@ type JobsContextValue = {
   dailySavingTarget: number;
   autoSavePercent: number;
   savingsLog: SavingEntry[];
+  trustedNumber: string;
   geminiApiKey: string;
   geminiModel: string;
   openRouterApiKey: string;
@@ -159,6 +160,7 @@ type JobsContextValue = {
   setAutoSavePercent: (percent: number) => void;
   addSavingEntry: (amount: number, date: string) => void;
   removeSavingEntry: (id: string) => void;
+  setTrustedNumber: (number: string) => void;
   setGeminiApiKey: (key: string) => void;
   setGeminiModel: (model: string) => void;
   setOpenRouterApiKey: (key: string) => void;
@@ -203,6 +205,7 @@ export function JobsProvider({ children }: { children: ReactNode }) {
   const [dailySavingTarget, setDailySavingTarget] = useState(300);
   const [autoSavePercent, setAutoSavePercent] = useState(10);
   const [savingsLog, setSavingsLog] = useState<SavingEntry[]>([]);
+  const [trustedNumber, setTrustedNumber] = useState("");
   const [geminiApiKey, setGeminiApiKey] = useState(() => getApiKey());
   const [geminiModel, setGeminiModel] = useState(configuredGeminiModel);
   const [openRouterApiKey, setOpenRouterApiKey] = useState(() => getOpenRouterKey());
@@ -225,6 +228,7 @@ export function JobsProvider({ children }: { children: ReactNode }) {
         setDailySavingTarget(saved.dailySavingTarget ?? 300);
         setAutoSavePercent(saved.autoSavePercent ?? 10);
         setSavingsLog(Array.isArray(saved.savingsLog) ? saved.savingsLog : []);
+        setTrustedNumber(saved.trustedNumber ?? "");
         setGeminiApiKey(saved.geminiApiKey ?? getApiKey());
         setGeminiModel(saved.geminiModel ?? "gemini-2.0-flash");
         setOpenRouterApiKey(saved.openRouterApiKey ?? getOpenRouterKey());
@@ -247,6 +251,7 @@ export function JobsProvider({ children }: { children: ReactNode }) {
         dailySavingTarget,
         autoSavePercent,
         savingsLog,
+        trustedNumber,
         geminiApiKey,
         geminiModel,
         openRouterApiKey,
@@ -261,6 +266,7 @@ export function JobsProvider({ children }: { children: ReactNode }) {
     dailySavingTarget,
     autoSavePercent,
     savingsLog,
+    trustedNumber,
     geminiApiKey,
     geminiModel,
     openRouterApiKey,
@@ -275,6 +281,7 @@ export function JobsProvider({ children }: { children: ReactNode }) {
       dailySavingTarget,
       autoSavePercent,
       savingsLog,
+      trustedNumber,
       geminiApiKey,
       geminiModel,
       openRouterApiKey,
@@ -300,6 +307,7 @@ export function JobsProvider({ children }: { children: ReactNode }) {
       addSavingEntry: (amount, date) =>
         setSavingsLog((prev) => [{ id: crypto.randomUUID(), amount, date }, ...prev]),
       removeSavingEntry: (id) => setSavingsLog((prev) => prev.filter((entry) => entry.id !== id)),
+      setTrustedNumber,
       setGeminiApiKey,
       setGeminiModel,
       setOpenRouterApiKey,
@@ -312,6 +320,7 @@ export function JobsProvider({ children }: { children: ReactNode }) {
       dailySavingTarget,
       autoSavePercent,
       savingsLog,
+      trustedNumber,
       geminiApiKey,
       geminiModel,
       openRouterApiKey,

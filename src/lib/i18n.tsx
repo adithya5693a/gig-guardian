@@ -665,8 +665,37 @@ const dashboardTranslations: Record<Language, Record<string, string>> = {
     Fair: "उचित",
     "No jobs yet. Start with manual entry or screenshot scan.":
       "अभी कोई काम नहीं है। मैन्युअल एंट्री या स्क्रीनशॉट स्कैन से शुरू करें।",
+    "Emergency contact number": "आपातकालीन संपर्क नंबर",
+    "Save phone number": "नंबर सेव करें",
+    "Saved contact": "सेव किया गया संपर्क",
+    "Add an emergency contact number to enable the alert.":
+      "अलर्ट सक्षम करने के लिए आपातकालीन संपर्क नंबर जोड़ें।",
+    "Send emergency alert": "आपातकालीन अलर्ट भेजें",
+    "Getting your live location…": "आपकी लाइव लोकेशन प्राप्त हो रही है…",
+    "My live location": "मेरी लाइव लोकेशन",
+    "Emergency message ready": "आपातकालीन संदेश तैयार है",
+    "Location unavailable — message sent without it":
+      "लोकेशन उपलब्ध नहीं — संदेश बिना लोकेशन के भेजा गया",
+    "Open WhatsApp": "WhatsApp खोलें",
+    "Send SMS": "SMS भेजें",
+    "Copy message": "संदेश कॉपी करें",
   },
-  kn: {},
+  kn: {
+    "Emergency contact number": "ತುರ್ತು ಸಂಪರ್ಕ ಸಂಖ್ಯೆ",
+    "Save phone number": "ಫೋನ್ ಸಂಖ್ಯೆ ಉಳಿಸಿ",
+    "Saved contact": "ಉಳಿಸಿದ ಸಂಪರ್ಕ",
+    "Add an emergency contact number to enable the alert.":
+      "ಎಚ್ಚರಿಕೆ ಸಕ್ರಿಯಗೊಳಿಸಲು ತುರ್ತು ಸಂಪರ್ಕ ಸಂಖ್ಯೆ ಸೇರಿಸಿ.",
+    "Send emergency alert": "ತುರ್ತು ಎಚ್ಚರಿಕೆ ಕಳುಹಿಸಿ",
+    "Getting your live location…": "ನಿಮ್ಮ ಲೈವ್ ಸ್ಥಳವನ್ನು ಪಡೆಯಲಾಗುತ್ತಿದೆ…",
+    "My live location": "ನನ್ನ ಲೈವ್ ಸ್ಥಳ",
+    "Emergency message ready": "ತುರ್ತು ಸಂದೇಶ ಸಿದ್ಧವಾಗಿದೆ",
+    "Location unavailable — message sent without it":
+      "ಸ್ಥಳ ಲಭ್ಯವಿಲ್ಲ — ಸ್ಥಳವಿಲ್ಲದೆ ಸಂದೇಶ ಕಳುಹಿಸಲಾಗಿದೆ",
+    "Open WhatsApp": "WhatsApp ತೆರೆಯಿರಿ",
+    "Send SMS": "SMS ಕಳುಹಿಸಿ",
+    "Copy message": "ಸಂದೇಶವನ್ನು ನಕಲಿಸಿ",
+  },
   ta: {
     "Your earnings": "உங்கள் வருமானம்",
     "This week": "இந்த வாரம்",
@@ -709,6 +738,20 @@ const dashboardTranslations: Record<Language, Record<string, string>> = {
     Fair: "நியாயம்",
     "No jobs yet. Start with manual entry or screenshot scan.":
       "வேலைகள் இல்லை. கைமுறை பதிவு அல்லது ஸ்கிரீன்ஷாட் ஸ்கேன் மூலம் தொடங்கவும்.",
+    "Emergency contact number": "அவசர தொடர்பு எண்",
+    "Save phone number": "தொலைபேசி எண்ணைச் சேமி",
+    "Saved contact": "சேமித்த தொடர்பு",
+    "Add an emergency contact number to enable the alert.":
+      "எச்சரிக்கையை இயக்க அவசர தொடர்பு எண்ணைச் சேர்க்கவும்.",
+    "Send emergency alert": "அவசர எச்சரிக்கை அனுப்பு",
+    "Getting your live location…": "உங்கள் லைவ் இருப்பிடம் பெறப்படுகிறது…",
+    "My live location": "என் லைவ் இருப்பிடம்",
+    "Emergency message ready": "அவசர செய்தி தயார்",
+    "Location unavailable — message sent without it":
+      "இருப்பிடம் கிடைக்கவில்லை — செய்தி இருப்பிடம் இல்லாமல் அனுப்பப்பட்டது",
+    "Open WhatsApp": "WhatsApp ஐத் திற",
+    "Send SMS": "SMS அனுப்பு",
+    "Copy message": "செய்தியை நகலெடு",
   },
   te: {
     "Your earnings": "మీ ఆదాయం",
@@ -752,6 +795,20 @@ const dashboardTranslations: Record<Language, Record<string, string>> = {
     Fair: "న్యాయం",
     "No jobs yet. Start with manual entry or screenshot scan.":
       "పనులు లేవు. మాన్యువల్ నమోదు లేదా స్క్రీన్‌షాట్ స్కాన్‌తో ప్రారంభించండి.",
+    "Emergency contact number": "అత్యవసర సంప్రదింపు నంబర్",
+    "Save phone number": "ఫోన్ నంబర్ సేవ్ చేయండి",
+    "Saved contact": "సేవ్ చేసిన కాంటాక్ట్",
+    "Add an emergency contact number to enable the alert.":
+      "హెచ్చరికను ప్రారంభించడానికి అత్యవసర సంప్రదింపు నంబర్ను జోడించండి.",
+    "Send emergency alert": "అత్యవసర హెచ్చరిక పంపండి",
+    "Getting your live location…": "మీ లైవ్ లొకేషన్ పొందుతోంది…",
+    "My live location": "నా లైవ్ లొకేషన్",
+    "Emergency message ready": "అత్యవసర సందేశం సిద్ధంగా ఉంది",
+    "Location unavailable — message sent without it":
+      "లొకేషన్ అందుబాటులో లేదు — లొకేషన్ లేకుండా సందేశం పంపబడింది",
+    "Open WhatsApp": "WhatsApp తెరవండి",
+    "Send SMS": "SMS పంపండి",
+    "Copy message": "సందేశాన్ని కాపీ చేయండి",
   },
   mr: {
     "Your earnings": "तुमची कमाई",
@@ -795,8 +852,37 @@ const dashboardTranslations: Record<Language, Record<string, string>> = {
     Fair: "योग्य",
     "No jobs yet. Start with manual entry or screenshot scan.":
       "अजून कामे नाहीत. मॅन्युअल नोंद किंवा स्क्रीनशॉट स्कॅनने सुरू करा.",
+    "Emergency contact number": "आपत्कालीन संपर्क क्रमांक",
+    "Save phone number": "फोन क्रमांक सेव्ह करा",
+    "Saved contact": "सेव्ह केलेला संपर्क",
+    "Add an emergency contact number to enable the alert.":
+      "सूचना सुरू करण्यासाठी आपत्कालीन संपर्क क्रमांक जोडा.",
+    "Send emergency alert": "आपत्कालीन सूचना पाठवा",
+    "Getting your live location…": "तुमचे लाइव्ह लोकेशन मिळत आहे…",
+    "My live location": "माझे लाइव्ह लोकेशन",
+    "Emergency message ready": "आपत्कालीन संदेश तयार आहे",
+    "Location unavailable — message sent without it":
+      "लोकेशन उपलब्ध नाही — संदेश लोकेशनशिवाय पाठवला",
+    "Open WhatsApp": "WhatsApp उघडा",
+    "Send SMS": "SMS पाठवा",
+    "Copy message": "संदेश कॉपी करा",
   },
-  bn: {},
+  bn: {
+    "Emergency contact number": "জরুরি যোগাযোগ নম্বর",
+    "Save phone number": "ফোন নম্বর সেভ করুন",
+    "Saved contact": "সেভ করা যোগাযোগ",
+    "Add an emergency contact number to enable the alert.":
+      "সতর্কতা সক্রিয় করতে জরুরি যোগাযোগ নম্বর যোগ করুন।",
+    "Send emergency alert": "জরুরি সতর্কতা পাঠান",
+    "Getting your live location…": "আপনার লাইভ অবস্থান পাওয়া যাচ্ছে…",
+    "My live location": "আমার লাইভ অবস্থান",
+    "Emergency message ready": "জরুরি বার্তা প্রস্তুত",
+    "Location unavailable — message sent without it":
+      "অবস্থান পাওয়া যায়নি — অবস্থান ছাড়া বার্তা পাঠানো হয়েছে",
+    "Open WhatsApp": "WhatsApp খুলুন",
+    "Send SMS": "SMS পাঠান",
+    "Copy message": "বার্তা কপি করুন",
+  },
 };
 const LanguageContext = createContext<{
   language: Language;
