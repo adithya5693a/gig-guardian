@@ -37,13 +37,6 @@ export function AppShell({ children }: { children: ReactNode }) {
             >
               {t("aiChat")}
             </Link>
-            <Link
-              to="/check"
-              className="rounded-md px-3 py-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-              activeProps={{ className: "bg-secondary text-foreground" }}
-            >
-              {t("checkOffer")}
-            </Link>
             <label className="sr-only" htmlFor="language-select">
               {t("language")}
             </label>

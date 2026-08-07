@@ -5,6 +5,7 @@ import {
   benchmarkForVehicle,
   fairness,
   isRideHailingPlatform,
+  offerVerdict,
   type Platform,
   type VehicleType,
   useJobs,
@@ -12,6 +13,7 @@ import {
 } from "@/lib/jobs-store";
 import { extractOcr, parseOcrText, type OcrValues } from "@/lib/ocr";
 import { useI18n } from "@/lib/i18n";
+import { OfferVerdictCard } from "@/components/OfferVerdictCard";
 
 export const Route = createFileRoute("/log")({
   head: () => ({ meta: [{ title: "Log a Job — GigShield" }] }),
@@ -71,6 +73,7 @@ function LogJob() {
   const [lastOcr, setLastOcr] = useState<OcrValues | null>(null);
   const [ocrBusy, setOcrBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [declinedMessage, setDeclinedMessage] = useState("");
   const [error, setError] = useState("");
 
   const showVehicleSelect = isRideHailingPlatform(platform);
@@ -153,6 +156,7 @@ function LogJob() {
       source: mode,
     } as const;
     addJob(job);
+    setDeclinedMessage("");
     const result = fairness(job, jobs);
     setMessage(
       `${result.status}: actual ₹${f.toFixed(0)} vs estimated fair ₹${result.expected.toFixed(0)} (${activeVehicle} benchmark: ₹${result.benchmark}/km).`,
@@ -161,6 +165,16 @@ function LogJob() {
     setDistance("");
     setMinutes("");
     setOcrText("");
+  }
+
+  function decline() {
+    setFare("");
+    setDistance("");
+    setMinutes("");
+    setOcrText("");
+    setError("");
+    setMessage("");
+    setDeclinedMessage(translate("Job declined — not logged."));
   }
 
   if (!setupComplete)
@@ -462,24 +476,12 @@ function LogJob() {
         </div>
 
         {fare && distance && minutes ? (
-          <div className="rounded-2xl bg-secondary p-3 text-sm">
-            {translate("Estimated fair payout:")}{" "}
-            <b>
-              ₹
-              {fairness(
-                {
-                  fare: Number(fare),
-                  distance: Number(distance),
-                  vehicleType: activeVehicle,
-                  platform,
-                },
-                jobs,
-              ).expected.toFixed(0)}
-            </b>
-            <span className="ml-2 text-muted-foreground">
-              ({translate("Your logged payouts")}: ₹
-              {
-                fairness(
+          <div className="space-y-4">
+            <div className="rounded-2xl bg-secondary p-3 text-sm">
+              {translate("Estimated fair payout:")}{" "}
+              <b>
+                ₹
+                {fairness(
                   {
                     fare: Number(fare),
                     distance: Number(distance),
@@ -487,19 +489,61 @@ function LogJob() {
                     platform,
                   },
                   jobs,
-                ).benchmark
-              }
-              /km · {activeVehicle})
-            </span>
+                ).expected.toFixed(0)}
+              </b>
+              <span className="ml-2 text-muted-foreground">
+                ({translate("Your logged payouts")}: ₹
+                {
+                  fairness(
+                    {
+                      fare: Number(fare),
+                      distance: Number(distance),
+                      vehicleType: activeVehicle,
+                      platform,
+                    },
+                    jobs,
+                  ).benchmark
+                }
+                /km · {activeVehicle})
+              </span>
+            </div>
+            <OfferVerdictCard
+              verdict={offerVerdict(
+                {
+                  fare: Number(fare),
+                  distance: Number(distance),
+                  vehicleType: activeVehicle,
+                  platform,
+                },
+                jobs,
+              )}
+            />
           </div>
         ) : null}
         {message ? (
           <p className="rounded-xl bg-success/15 p-3 text-sm font-bold text-success">{message}</p>
         ) : null}
+        {declinedMessage ? (
+          <p className="rounded-xl bg-destructive/15 p-3 text-sm font-bold text-destructive">
+            {declinedMessage}
+          </p>
+        ) : null}
         {error ? <p className="text-sm font-bold text-destructive">{error}</p> : null}
-        <button className="w-full rounded-xl bg-primary px-4 py-3 font-bold text-primary-foreground hover:opacity-90">
-          {translate("Save and check fairness")}
-        </button>
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            type="submit"
+            className="rounded-xl bg-primary px-4 py-3 font-bold text-primary-foreground hover:opacity-90"
+          >
+            {translate("Accept job")}
+          </button>
+          <button
+            type="button"
+            onClick={decline}
+            className="rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 font-bold text-destructive hover:bg-destructive/20"
+          >
+            {translate("Decline job")}
+          </button>
+        </div>
       </form>
     </AppShell>
   );

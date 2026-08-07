@@ -117,6 +117,17 @@ export function isFair(job: Job) {
 // "Rule of 10": an offer is worth accepting only if it is within 10% of the
 // estimated fair payout for the trip. Anything below that threshold should be
 // rejected or countered with at least the fair estimate.
+export type OfferVerdict = {
+  level: "pending" | "accept" | "consider" | "reject";
+  offered: number;
+  expected: number;
+  ruleOfTenFloor: number;
+  benchmark: number;
+  ratePerKm: number;
+  benchmarkSource: "community" | "vehicle";
+  communitySampleSize: number;
+};
+
 export function offerVerdict(
   offer: Pick<Job, "fare" | "distance"> & { vehicleType?: VehicleType; platform?: Platform },
   observations: Job[] = [],
@@ -141,7 +152,7 @@ export function offerVerdict(
     ratePerKm: fair.ratePerKm,
     benchmarkSource: fair.benchmarkSource,
     communitySampleSize: fair.communitySampleSize,
-  };
+  } satisfies OfferVerdict;
 }
 
 type JobsContextValue = {
