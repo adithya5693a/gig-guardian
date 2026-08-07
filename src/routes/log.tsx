@@ -45,7 +45,18 @@ function applyOcrValues(
 }
 
 function LogJob() {
-  const { jobs, jobsToLog, addJob, setupComplete } = useJobs();
+  const {
+    jobs,
+    jobsToLog,
+    addJob,
+    setupComplete,
+    geminiApiKey,
+    setGeminiApiKey,
+    geminiModel,
+    setGeminiModel,
+    openRouterApiKey,
+    setOpenRouterApiKey,
+  } = useJobs();
   const { translate } = useI18n();
   const navigate = useNavigate();
   const [mode, setMode] = useState<"manual" | "scan">("manual");
@@ -88,12 +99,24 @@ function LogJob() {
     );
   }
 
+  const [ocrSource, setOcrSource] = useState<string | null>(null);
+  const [showOcrSettings, setShowOcrSettings] = useState(false);
+
   async function scanScreenshot(file: File) {
     setOcrBusy(true);
     setError("");
+    setOcrSource(null);
     try {
-      const result = await extractOcr(file);
+      const result = await extractOcr(file, {
+        geminiApiKey,
+        openRouterApiKey,
+        geminiModel,
+      });
       setOcrText(result.text);
+      setOcrSource(result.source);
+      if (result.error) {
+        setError(`AI extraction failed, fell back to local OCR: ${result.error}`);
+      }
       handleOcrResults(result.values);
     } catch (err) {
       setError(
@@ -196,7 +219,89 @@ function LogJob() {
       </div>
       {mode === "scan" ? (
         <div className="mt-4 rounded-3xl border border-border bg-card p-4">
-          <label className="text-sm font-bold">{translate("Upload app screenshot")}</label>
+          <div className="mb-4 flex items-center justify-between gap-2 border-b border-border/50 pb-3">
+            <div className="flex items-center gap-2">
+              {openRouterApiKey || (geminiApiKey && geminiApiKey !== "your_gemini_api_key_here") ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-success/15 px-2.5 py-0.5 text-xs font-bold text-success">
+                  <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
+                  AI OCR Connected
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-destructive/15 px-2.5 py-0.5 text-xs font-bold text-destructive">
+                  <span className="h-1.5 w-1.5 rounded-full bg-destructive" />
+                  Local OCR (Tesseract)
+                </span>
+              )}
+              {ocrSource && (
+                <span className="rounded-md bg-secondary px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
+                  Source: {ocrSource}
+                </span>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowOcrSettings(!showOcrSettings)}
+              className="text-xs font-extrabold text-primary hover:underline"
+            >
+              {showOcrSettings ? "Hide Settings" : "Configure AI Keys"}
+            </button>
+          </div>
+
+          {showOcrSettings && (
+            <div className="mb-4 space-y-3 rounded-2xl border border-border/80 bg-secondary/30 p-3.5 text-xs">
+              <h3 className="font-extrabold tracking-tight text-foreground">
+                AI OCR Configuration
+              </h3>
+              <p className="text-muted-foreground leading-relaxed">
+                Connect your API keys to extract payouts and ride details with extremely high
+                accuracy. Keys are saved locally on your device.
+              </p>
+              <div className="space-y-3 mt-2">
+                <label className="block">
+                  <span className="font-bold text-muted-foreground">OpenRouter API Key</span>
+                  <input
+                    type="password"
+                    value={openRouterApiKey}
+                    onChange={(e) => setOpenRouterApiKey(e.target.value)}
+                    placeholder="sk-or-..."
+                    className="mt-1 w-full rounded-xl border border-input bg-secondary px-3 py-2 text-xs outline-none focus:border-ring focus:ring-2 focus:ring-ring/30"
+                  />
+                </label>
+                <div className="relative flex py-1 items-center">
+                  <div className="flex-grow border-t border-border/60"></div>
+                  <span className="flex-shrink mx-2 text-[9px] font-bold text-muted-foreground/60 uppercase">
+                    OR
+                  </span>
+                  <div className="flex-grow border-t border-border/60"></div>
+                </div>
+                <label className="block">
+                  <span className="font-bold text-muted-foreground">Gemini API Key</span>
+                  <input
+                    type="password"
+                    value={geminiApiKey}
+                    onChange={(e) => setGeminiApiKey(e.target.value)}
+                    placeholder="AIzaSy..."
+                    className="mt-1 w-full rounded-xl border border-input bg-secondary px-3 py-2 text-xs outline-none focus:border-ring focus:ring-2 focus:ring-ring/30"
+                  />
+                </label>
+                <label className="block">
+                  <span className="font-bold text-muted-foreground">Gemini Model</span>
+                  <select
+                    value={geminiModel}
+                    onChange={(e) => setGeminiModel(e.target.value)}
+                    className="mt-1 w-full rounded-xl border border-input bg-secondary px-3 py-2 text-xs outline-none focus:border-ring focus:ring-2 focus:ring-ring/30"
+                  >
+                    <option value="gemini-2.0-flash">gemini-2.0-flash (Recommended)</option>
+                    <option value="gemini-1.5-flash">gemini-1.5-flash</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+          )}
+
+          <label className="text-sm font-bold block mb-1">
+            {translate("Upload app screenshot")}
+          </label>
           <input
             type="file"
             accept="image/png,image/jpeg"
@@ -204,7 +309,7 @@ function LogJob() {
               const file = e.target.files?.[0];
               if (file) void scanScreenshot(file);
             }}
-            className="mt-2 block w-full text-sm"
+            className="mt-1 block w-full text-sm"
           />
           {lastOcr ? (
             <div className="mt-3 rounded-2xl bg-secondary/80 p-3 text-xs leading-relaxed">
