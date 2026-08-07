@@ -9,7 +9,7 @@ import {
   type ChatMessage,
 } from "@/lib/ai";
 import { useJobs } from "@/lib/jobs-store";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, languageNames } from "@/lib/i18n";
 
 export const Route = createFileRoute("/assistant")({
   component: Assistant,
@@ -47,7 +47,7 @@ function Assistant() {
     setBusy(true);
 
     try {
-      const systemPrompt = `${GIGSHIELD_CHAT_SYSTEM_PROMPT}\nReply in the user's selected language (${language}). Worker job data: ${jobsContext(jobs)}.`;
+      const systemPrompt = `${GIGSHIELD_CHAT_SYSTEM_PROMPT}\nIMPORTANT: The user selected "${languageNames[language]}" (${language}) in the app. You MUST write every reply entirely in ${languageNames[language]}, even if the user writes in English. Use ₹ and km. Worker job data: ${jobsContext(jobs)}.`;
       const history: ChatMessage[] = [
         ...messages.map((message) => ({ role: message.role, text: message.text })),
         { role: "user", text },
@@ -57,7 +57,7 @@ function Assistant() {
         geminiApiKey,
         geminiModel,
         history,
-        localAssistant(text, jobs),
+        localAssistant(text, jobs, language),
         systemPrompt,
       );
       setMessages((current) => [...current, { role: "assistant", text: answer }]);

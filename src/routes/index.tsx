@@ -5,14 +5,9 @@ import {
   Clock,
   IndianRupee,
   MessageCircle,
-  Percent,
-  PiggyBank,
   ShieldAlert,
   Target,
   Trash2,
-  TrendingDown,
-  TrendingUp,
-  Wallet,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { EarningsChart } from "@/components/EarningsChart";
@@ -29,7 +24,6 @@ import {
   fairness,
   jobsThisWeek,
   jobsLastWeek,
-  startOfWeek,
   useJobs,
   type Job,
 } from "@/lib/jobs-store";
@@ -295,194 +289,6 @@ function ComplaintSupport({ flagged }: { flagged: Job[] }) {
   );
 }
 
-function DailySavingsPlan({ jobs }: { jobs: Job[] }) {
-  const { dailySavingTarget, setDailySavingTarget } = useJobs();
-  const { translate } = useI18n();
-  const week = jobsThisWeek(jobs);
-  const earned = week.reduce((s, j) => s + j.fare, 0);
-  const daysElapsed = Math.floor((Date.now() - startOfWeek().getTime()) / 86_400_000) + 1;
-  const weekTarget = dailySavingTarget * daysElapsed;
-  return (
-    <div className="rounded-3xl border border-border bg-card p-5">
-      <h2 className="flex items-center gap-2 text-lg font-bold">
-        <Wallet size={18} /> {translate("Daily savings plan")}
-      </h2>
-      <label className="mt-1 block text-xs text-muted-foreground">
-        {translate("Daily target")}
-      </label>
-      <div className="mt-2 flex gap-2">
-        <input
-          type="number"
-          min="0"
-          value={dailySavingTarget}
-          onChange={(e) => setDailySavingTarget(Math.max(0, Number(e.target.value) || 0))}
-          className="min-w-0 flex-1 rounded-xl border border-input bg-secondary px-3 py-2"
-        />
-        <span className="rounded-xl bg-secondary px-3 py-2">₹</span>
-      </div>
-      <div className="mt-3 h-2 overflow-hidden rounded-full bg-secondary">
-        <div
-          className={`h-full rounded-full ${earned >= weekTarget ? "bg-success" : "bg-primary"}`}
-          style={{ width: `${weekTarget ? Math.min(100, (earned / weekTarget) * 100) : 0}%` }}
-        />
-      </div>
-      <p className="mt-2 text-xs text-muted-foreground">
-        ₹{earned.toFixed(0)} {translate("earned this week")} · {translate("This week's target")}: ₹
-        {weekTarget.toFixed(0)}
-      </p>
-      <p className="mt-1 text-sm font-bold">
-        {translate("Save today")}: ₹{dailySavingTarget.toFixed(0)} {translate("per day")}
-      </p>
-    </div>
-  );
-}
-
-function AutoSetAside({ jobs }: { jobs: Job[] }) {
-  const { autoSavePercent, setAutoSavePercent } = useJobs();
-  const { translate } = useI18n();
-  const setAside = jobs.reduce((s, j) => s + j.fare * (autoSavePercent / 100), 0);
-  const rates = [0, 5, 10, 15, 20];
-  return (
-    <div className="rounded-3xl border border-border bg-card p-5">
-      <h2 className="flex items-center gap-2 text-lg font-bold">
-        <Percent size={18} /> {translate("Auto set-aside")}
-      </h2>
-      <div className="mt-3 flex flex-wrap gap-1.5">
-        {rates.map((rate) => (
-          <button
-            key={rate}
-            onClick={() => setAutoSavePercent(rate)}
-            className={`rounded-lg px-3 py-1.5 text-sm font-bold ${
-              autoSavePercent === rate
-                ? "bg-primary text-primary-foreground"
-                : "bg-secondary text-muted-foreground"
-            }`}
-          >
-            {rate}%
-          </button>
-        ))}
-      </div>
-      <p className="mt-4 text-2xl font-extrabold">₹{setAside.toFixed(0)}</p>
-      <p className="text-xs text-muted-foreground">
-        {autoSavePercent > 0
-          ? `${autoSavePercent}% ${translate("of every fare")}`
-          : translate("Set-aside is off")}
-      </p>
-    </div>
-  );
-}
-
-function ManualSavingsLog() {
-  const { savingsLog, addSavingEntry, removeSavingEntry } = useJobs();
-  const { translate } = useI18n();
-  const [amount, setAmount] = useState("");
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const total = savingsLog.reduce((s, e) => s + e.amount, 0);
-  const recent = [...savingsLog].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5);
-  return (
-    <div className="rounded-3xl border border-border bg-card p-5">
-      <h2 className="flex items-center gap-2 text-lg font-bold">
-        <PiggyBank size={18} /> {translate("Manual savings log")}
-      </h2>
-      <div className="mt-3 flex gap-2">
-        <input
-          type="number"
-          min="0"
-          inputMode="numeric"
-          value={amount}
-          placeholder="₹"
-          onChange={(e) => setAmount(e.target.value)}
-          className="w-24 rounded-xl border border-input bg-secondary px-3 py-2"
-        />
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          className="min-w-0 flex-1 rounded-xl border border-input bg-secondary px-3 py-2"
-        />
-        <button
-          onClick={() => {
-            const value = Number(amount);
-            if (value > 0 && date) addSavingEntry(value, date);
-            setAmount("");
-          }}
-          className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
-        >
-          {translate("Add")}
-        </button>
-      </div>
-      {recent.length ? (
-        <ul className="mt-3 space-y-1.5">
-          {recent.map((entry) => (
-            <li
-              key={entry.id}
-              className="flex items-center justify-between gap-2 rounded-xl bg-secondary px-3 py-2 text-sm"
-            >
-              <span className="text-muted-foreground">
-                {new Date(`${entry.date}T00:00:00`).toLocaleDateString("en-IN", {
-                  dateStyle: "medium",
-                })}
-              </span>
-              <span className="font-bold">₹{entry.amount}</span>
-              <button
-                onClick={() => removeSavingEntry(entry.id)}
-                className="text-muted-foreground hover:text-destructive"
-                aria-label={translate("Delete job")}
-              >
-                <Trash2 size={14} />
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="mt-3 text-xs text-muted-foreground">{translate("No savings yet")}</p>
-      )}
-      <p className="mt-3 text-2xl font-extrabold">₹{total.toFixed(0)}</p>
-      <p className="text-xs text-muted-foreground">{translate("Saved so far")}</p>
-    </div>
-  );
-}
-
-function TodayProfitLoss({ jobs }: { jobs: Job[] }) {
-  const { translate } = useI18n();
-  const today = jobs.filter(
-    (job) => new Date(job.datetime).toDateString() === new Date().toDateString(),
-  );
-  const profit = today.reduce((s, job) => s + job.fare, 0);
-  const loss = today.reduce(
-    (s, job) => s + (fairness(job).flagged ? Math.max(0, fairness(job).expected - job.fare) : 0),
-    0,
-  );
-  const net = profit - loss;
-  return (
-    <div className="rounded-3xl border border-border bg-card p-5">
-      <h2 className="flex items-center gap-2 text-lg font-bold">
-        <TrendingUp size={18} /> {translate("Today's profit & loss")}
-      </h2>
-      <div className="mt-4 grid grid-cols-2 gap-3">
-        <div className="rounded-2xl bg-secondary p-3">
-          <p className="flex items-center gap-1 text-xs text-muted-foreground">
-            <TrendingUp size={13} /> {translate("Profit today")}
-          </p>
-          <p className="mt-1 text-xl font-extrabold text-success">₹{profit.toFixed(0)}</p>
-        </div>
-        <div className="rounded-2xl bg-secondary p-3">
-          <p className="flex items-center gap-1 text-xs text-muted-foreground">
-            <TrendingDown size={13} /> {translate("Loss today")}
-          </p>
-          <p className="mt-1 text-xl font-extrabold text-destructive">₹{loss.toFixed(0)}</p>
-        </div>
-      </div>
-      <p className="mt-3 text-sm">
-        <b>{translate("Net today")}:</b>{" "}
-        <span className={`font-bold ${net >= 0 ? "text-success" : "text-destructive"}`}>
-          ₹{net.toFixed(0)}
-        </span>
-      </p>
-    </div>
-  );
-}
-
 function SafetyAndSavings({ jobs }: { jobs: Job[] }) {
   const { savingsGoal, setSavingsGoal, resetSetup } = useJobs();
   const { translate } = useI18n();
@@ -516,10 +322,6 @@ function SafetyAndSavings({ jobs }: { jobs: Job[] }) {
           {translate("goal")}
         </p>
       </div>
-      <DailySavingsPlan jobs={jobs} />
-      <AutoSetAside jobs={jobs} />
-      <ManualSavingsLog />
-      <TodayProfitLoss jobs={jobs} />
       <div className="rounded-3xl border border-border bg-card p-5">
         <h2 className="flex items-center gap-2 text-lg font-bold">
           <ShieldAlert size={18} /> {translate("Safety check")}

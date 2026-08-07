@@ -11,6 +11,16 @@ export const languages = {
 } as const;
 
 export type Language = keyof typeof languages;
+
+export const languageNames: Record<Language, string> = {
+  en: "English",
+  hi: "Hindi",
+  kn: "Kannada",
+  ta: "Tamil",
+  te: "Telugu",
+  mr: "Marathi",
+  bn: "Bengali",
+};
 const translations = {
   en: {
     dashboard: "Dashboard",
@@ -192,6 +202,28 @@ const extraTranslations: Partial<Record<Language, Record<string, string>>> = {
     "Gemini API key (optional fallback)": "Gemini API कुंजी (वैकल्पिक बैकअप)",
     "AI connected": "AI कनेक्टेड",
     "Change API key": "API कुंजी बदलें",
+    "Hello! I'm GigShield. Ask me anything about your gig work — fares, earnings, safety, complaints — or any other question, and I'll do my best to help.":
+      "नमस्ते! मैं GigShield हूँ। अपने गिग काम के बारे में कुछ भी पूछें — किराया, कमाई, सुरक्षा, शिकायतें — या कोई और सवाल, मैं पूरी मदद करूँगा।",
+    "You have earned ₹{earned} across {jobs} jobs and worked {hours} hours.":
+      "आपने {jobs} कामों में ₹{earned} कमाए हैं और {hours} घंटे काम किया है।",
+    "{flagged} job(s) may need a payout review. GigShield compares payout with a transparent distance-and-time estimate; it is not legal proof.":
+      "{flagged} कामों में भुगतान की समीक्षा की ज़रूरत हो सकती है। GigShield भुगतान की तुलना पारदर्शी दूरी-और-समय अनुमान से करता है; यह कानूनी प्रमाण नहीं है।",
+    "Keep screenshots, trip IDs, timestamps, and payout records. Ask the platform for a written payout review.":
+      "स्क्रीनशॉट, ट्रिप आईडी, समय-स्टैम्प और भुगतान रिकॉर्ड रखें। प्लेटफ़ॉर्म से लिखित भुगतान समीक्षा माँगें।",
+    "In India, gig earnings are taxable income. Track every payout, maintain expense records (fuel, maintenance, mobile data), and consult a chartered accountant for the right deductions. This is general guidance, not legal advice.":
+      "भारत में गिग कमाई कर योग्य आय है। हर भुगतान का रिकॉर्ड रखें, खर्चों (ईंधन, रखरखाव, मोबाइल डेटा) का हिसाब रखें, और सही कटौतियों के लिए चार्टर्ड अकाउंटेंट से सलाह लें। यह सामान्य मार्गदर्शन है, कानूनी सलाह नहीं।",
+    "Across {jobs} jobs you have earned ₹{earned}. Try setting aside 10–20% of every fare and set a daily savings target on your dashboard.":
+      "आपने {jobs} कामों में ₹{earned} कमाए हैं। हर किराए का 10–20% अलग रखने की कोशिश करें और डैशबोर्ड पर दैनिक बचत लक्ष्य सेट करें।",
+    "For safety: share your live location with a trusted contact, avoid remote pickups at night, and use the Safety check button on the dashboard to prepare an alert.":
+      "सुरक्षा के लिए: किसी भरोसेमंद व्यक्ति के साथ अपनी लाइव लोकेशन साझा करें, रात में दूर के पिकअप से बचें, और डैशबोर्ड पर Safety check बटन से अलर्ट तैयार करें।",
+    "Night shifts usually pay better but have higher risk. Review each night job's per-km rate on your dashboard to see whether the extra pay was fair.":
+      "रात की शिफ्ट आमतौर पर बेहतर भुगतान करती है लेकिन जोखिम ज़्यादा होता है। हर रात के काम की प्रति-किमी दर डैशबोर्ड पर देखें कि अतिरिक्त भुगतान उचित था या नहीं।",
+    "Track fuel and maintenance separately from earnings. A common rule is to subtract fuel and vehicle costs from gross earnings before treating the rest as income.":
+      "ईंधन और रखरखाव को कमाई से अलग रखें। सामान्य नियम: कुल कमाई से ईंधन और वाहन लागत घटाएँ, बाकी को आय मानें।",
+    "You deserve a break. Drink water, rest, and avoid riding when exhausted.":
+      "आप आराम के हकदार हैं। पानी पिएँ, आराम करें, और थके हुए सवारी से बचें।",
+    "I'm currently working offline, so I can best answer questions about your gig data — earnings (₹{earned} across {jobs} jobs), fare fairness, complaints, safety, and savings. When the AI service is available I can answer any question. Try asking: Was my fare fair?":
+      "मैं अभी ऑफ़लाइन हूँ, इसलिए मैं आपके गिग डेटा के बारे में सबसे अच्छा जवाब दे सकता हूँ — कमाई (₹{earned}, {jobs} काम), किराया न्याय, शिकायतें, सुरक्षा और बचत। AI सेवा उपलब्ध होने पर मैं किसी भी सवाल का जवाब दे सकता हूँ। पूछें: क्या मेरा किराया सही था?",
   },
   kn: {
     "Set up your work plan first": "ಮೊದಲು ನಿಮ್ಮ ಕೆಲಸದ ಯೋಜನೆಯನ್ನು ಹೊಂದಿಸಿ",
@@ -299,6 +331,28 @@ const extraTranslations: Partial<Record<Language, Record<string, string>>> = {
     "Gemini API key (optional fallback)": "Gemini API ಕೀ (ಐಚ್ಛಿಕ ಬ್ಯಾಕಪ್)",
     "AI connected": "AI ಸಂಪರ್ಕಗೊಂಡಿದೆ",
     "Change API key": "API ಕೀ ಬದಲಿಸಿ",
+    "Hello! I'm GigShield. Ask me anything about your gig work — fares, earnings, safety, complaints — or any other question, and I'll do my best to help.":
+      "ನಮಸ್ಕಾರ! ನಾನು GigShield. ನಿಮ್ಮ ಗಿಗ್ ಕೆಲಸದ ಬಗ್ಗೆ ಏನು ಬೇಕಾದರೂ ಕೇಳಿ — ದರ, ಆದಾಯ, ಸುರಕ್ಷತೆ, ದೂರುಗಳು — ಅಥವಾ ಬೇರೆ ಯಾವುದೇ ಪ್ರಶ್ನೆ, ನಾನು ಸಹಾಯ ಮಾಡುತ್ತೇನೆ.",
+    "You have earned ₹{earned} across {jobs} jobs and worked {hours} hours.":
+      "ನೀವು {jobs} ಕೆಲಸಗಳಲ್ಲಿ ₹{earned} ಗಳಿಸಿದ್ದೀರಿ ಮತ್ತು {hours} ಗಂಟೆ ಕೆಲಸ ಮಾಡಿದ್ದೀರಿ.",
+    "{flagged} job(s) may need a payout review. GigShield compares payout with a transparent distance-and-time estimate; it is not legal proof.":
+      "{flagged} ಕೆಲಸ(ಗಳು) ಪಾವತಿ ಪರಿಶೀಲನೆ ಅಗತ್ಯವಿರಬಹುದು. GigShield ಪಾವತಿಯನ್ನು ಪಾರದರ್ಶಕ ದೂರ-ಮತ್ತು-ಸಮಯ ಅಂದಾಜಿನೊಂದಿಗೆ ಹೋಲಿಸುತ್ತದೆ; ಇದು ಕಾನೂನು ಪುರಾವೆ ಅಲ್ಲ.",
+    "Keep screenshots, trip IDs, timestamps, and payout records. Ask the platform for a written payout review.":
+      "ಸ್ಕ್ರೀನ್‌ಶಾಟ್‌ಗಳು, ಟ್ರಿಪ್ ಐಡಿ, ಸಮಯ-ಮುದ್ರೆ ಮತ್ತು ಪಾವತಿ ದಾಖಲೆಗಳನ್ನು ಇಟ್ಟುಕೊಳ್ಳಿ. ಪ್ಲಾಟ್‌ಫಾರ್ಮ್‌ನಲ್ಲಿ ಲಿಖಿತ ಪಾವತಿ ಪರಿಶೀಲನೆ ಕೇಳಿ.",
+    "In India, gig earnings are taxable income. Track every payout, maintain expense records (fuel, maintenance, mobile data), and consult a chartered accountant for the right deductions. This is general guidance, not legal advice.":
+      "ಭಾರತದಲ್ಲಿ ಗಿಗ್ ಆದಾಯವು ತೆರಿಗೆಗೆ ಒಳಪಡುತ್ತದೆ. ಪ್ರತಿ ಪಾವತಿಯನ್ನು ದಾಖಲಿಸಿ, ವೆಚ್ಚದ ದಾಖಲೆಗಳನ್ನು (ಇಂಧನ, ನಿರ್ವಹಣೆ, ಮೊಬೈಲ್ ಡೇಟಾ) ಇಡಿ, ಸರಿಯಾದ ಕಡಿತಗಳಿಗೆ ಚಾರ್ಟರ್ಡ್ ಅಕೌಂಟೆಂಟ್ ಸಲಹೆ ಪಡೆಯಿರಿ. ಇದು ಸಾಮಾನ್ಯ ಮಾರ್ಗದರ್ಶನ, ಕಾನೂನು ಸಲಹೆ ಅಲ್ಲ.",
+    "Across {jobs} jobs you have earned ₹{earned}. Try setting aside 10–20% of every fare and set a daily savings target on your dashboard.":
+      "{jobs} ಕೆಲಸಗಳಲ್ಲಿ ನೀವು ₹{earned} ಗಳಿಸಿದ್ದೀರಿ. ಪ್ರತಿ ದರದ 10–20% ಮೀಸಲಿಡಲು ಪ್ರಯತ್ನಿಸಿ ಮತ್ತು ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ನಲ್ಲಿ ದೈನಂದಿನ ಉಳಿತಾಯ ಗುರಿ ಇಡಿ.",
+    "For safety: share your live location with a trusted contact, avoid remote pickups at night, and use the Safety check button on the dashboard to prepare an alert.":
+      "ಸುರಕ್ಷತೆಗಾಗಿ: ನಂಬಿಕಸ್ಥ ವ್ಯಕ್ತಿಯೊಂದಿಗೆ ನಿಮ್ಮ ಲೈವ್ ಸ್ಥಳವನ್ನು ಹಂಚಿಕೊಳ್ಳಿ, ರಾತ್ರಿ ದೂರದ ಪಿಕಪ್‌ಗಳನ್ನು ತಪ್ಪಿಸಿ, ಮತ್ತು ಅಲರ್ಟ್ ಸಿದ್ಧಪಡಿಸಲು ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ನ Safety check ಬಟನ್ ಬಳಸಿ.",
+    "Night shifts usually pay better but have higher risk. Review each night job's per-km rate on your dashboard to see whether the extra pay was fair.":
+      "ರಾತ್ರಿ ಶಿಫ್ಟ್‌ಗಳು ಸಾಮಾನ್ಯವಾಗಿ ಹೆಚ್ಚು ಪಾವತಿಸುತ್ತವೆ ಆದರೆ ಹೆಚ್ಚು ಅಪಾಯ. ಪ್ರತಿ ರಾತ್ರಿ ಕೆಲಸದ ಪ್ರತಿ-ಕಿ.ಮೀ ದರವನ್ನು ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ನಲ್ಲಿ ಪರಿಶೀಲಿಸಿ.",
+    "Track fuel and maintenance separately from earnings. A common rule is to subtract fuel and vehicle costs from gross earnings before treating the rest as income.":
+      "ಇಂಧನ ಮತ್ತು ನಿರ್ವಹಣೆಯನ್ನು ಆದಾಯದಿಂದ ಪ್ರತ್ಯೇಕವಾಗಿ ದಾಖಲಿಸಿ. ಸಾಮಾನ್ಯ ನಿಯಮ: ಒಟ್ಟು ಆದಾಯದಿಂದ ಇಂಧನ ಮತ್ತು ವಾಹನ ವೆಚ್ಚವನ್ನು ಕಳೆದು ಉಳಿದುದನ್ನು ಆದಾಯವೆಂದು ಪರಿಗಣಿಸಿ.",
+    "You deserve a break. Drink water, rest, and avoid riding when exhausted.":
+      "ವಿರಾಮವು ನಿಮ್ಮ ಹಕ್ಕು. ನೀರು ಕುಡಿಯಿರಿ, ವಿಶ್ರಾಂತಿ ಪಡೆಯಿರಿ, ದಣಿದಾಗ ಸವಾರಿ ಮಾಡಬೇಡಿ.",
+    "I'm currently working offline, so I can best answer questions about your gig data — earnings (₹{earned} across {jobs} jobs), fare fairness, complaints, safety, and savings. When the AI service is available I can answer any question. Try asking: Was my fare fair?":
+      "ನಾನು ಇದೀಗ ಆಫ್‌ಲೈನ್‌ನಲ್ಲಿದ್ದೇನೆ, ಆದ್ದರಿಂದ ನಿಮ್ಮ ಗಿಗ್ ಡೇಟಾ ಬಗ್ಗೆ ಉತ್ತರಿಸಬಲ್ಲೆ — ಆದಾಯ (₹{earned}, {jobs} ಕೆಲಸಗಳು), ದರ ನ್ಯಾಯ, ದೂರುಗಳು, ಸುರಕ್ಷತೆ ಮತ್ತು ಉಳಿತಾಯ. AI ಲಭ್ಯವಾದಾಗ ಯಾವುದೇ ಪ್ರಶ್ನೆಗೆ ಉತ್ತರಿಸಬಲ್ಲೆ. ಕೇಳಿ: ನನ್ನ ದರ ನ್ಯಾಯವಾಗಿತ್ತೇ?",
   },
   ta: {
     "Set up your work plan first": "முதலில் உங்கள் வேலைத் திட்டத்தை அமைக்கவும்",
@@ -344,6 +398,28 @@ const extraTranslations: Partial<Record<Language, Record<string, string>>> = {
     "Gemini API key (optional fallback)": "Gemini API விசை (விருப்பமான காப்புப்பிரதி)",
     "AI connected": "AI இணைக்கப்பட்டது",
     "Change API key": "API விசையை மாற்றவும்",
+    "Hello! I'm GigShield. Ask me anything about your gig work — fares, earnings, safety, complaints — or any other question, and I'll do my best to help.":
+      "வணக்கம்! நான் GigShield. உங்கள் கிக் வேலை பற்றி எதுவும் கேளுங்கள் — கட்டணம், வருமானம், பாதுகாப்பு, புகார்கள் — அல்லது வேறு எந்த கேள்வியும், நான் முழு உதவி செய்கிறேன்.",
+    "You have earned ₹{earned} across {jobs} jobs and worked {hours} hours.":
+      "{jobs} வேலைகளில் ₹{earned} சம்பாதித்துள்ளீர்கள், {hours} மணி நேரம் வேலை செய்தீர்கள்.",
+    "{flagged} job(s) may need a payout review. GigShield compares payout with a transparent distance-and-time estimate; it is not legal proof.":
+      "{flagged} வேலை(கள்) கட்டண மதிப்பாய்வு தேவைப்படலாம். GigShield கட்டணத்தை வெளிப்படையான தூரம்-மற்றும்-நேர மதிப்பீட்டுடன் ஒப்பிடுகிறது; இது சட்ட ஆதாரம் அல்ல.",
+    "Keep screenshots, trip IDs, timestamps, and payout records. Ask the platform for a written payout review.":
+      "ஸ்கிரீன்ஷாட்கள், டிரிப் ஐடிகள், நேரமுத்திரைகள் மற்றும் கட்டண பதிவுகளை வைத்திருங்கள். தளத்திடம் எழுத்துப்பூர்வ கட்டண மதிப்பாய்வு கேளுங்கள்.",
+    "In India, gig earnings are taxable income. Track every payout, maintain expense records (fuel, maintenance, mobile data), and consult a chartered accountant for the right deductions. This is general guidance, not legal advice.":
+      "இந்தியாவில் கிக் வருமானம் வரிக்கு உட்பட்டது. ஒவ்வொரு கட்டணத்தையும் பதிவுசெய்யுங்கள், செலவு பதிவுகளை (எரிபொருள், பராமரிப்பு, மொபைல் டேட்டா) வைத்திருங்கள், சரியான விலக்குகளுக்கு சார்ட்டர்டு அக்கவுண்டண்டிடம் ஆலோசனை பெறுங்கள். இது பொதுவான வழிகாட்டுதல், சட்ட ஆலோசனை அல்ல.",
+    "Across {jobs} jobs you have earned ₹{earned}. Try setting aside 10–20% of every fare and set a daily savings target on your dashboard.":
+      "{jobs} வேலைகளில் ₹{earned} சம்பாதித்துள்ளீர்கள். ஒவ்வொரு கட்டணத்திலும் 10–20% ஒதுக்க முயற்சிக்கவும், டாஷ்போர்டில் தினசரி சேமிப்பு இலக்கை அமைக்கவும்.",
+    "For safety: share your live location with a trusted contact, avoid remote pickups at night, and use the Safety check button on the dashboard to prepare an alert.":
+      "பாதுகாப்புக்காக: நம்பகமான நபருடன் உங்கள் லைவ் இருப்பிடத்தைப் பகிரவும், இரவில் தொலைதூர பிக்கப்களைத் தவிர்க்கவும், எச்சரிக்கை தயாரிக்க டாஷ்போர்டில் Safety check பொத்தானைப் பயன்படுத்தவும்.",
+    "Night shifts usually pay better but have higher risk. Review each night job's per-km rate on your dashboard to see whether the extra pay was fair.":
+      "இரவு ஷிப்டுகள் பொதுவாக அதிகம் செலுத்தும் ஆனால் அதிக ஆபத்து. கூடுதல் கட்டணம் நியாயமா என்பதற்கு ஒவ்வொரு இரவு வேலையின் கி.மீ விகிதத்தை டாஷ்போர்டில் பார்க்கவும்.",
+    "Track fuel and maintenance separately from earnings. A common rule is to subtract fuel and vehicle costs from gross earnings before treating the rest as income.":
+      "எரிபொருள் மற்றும் பராமரிப்பை வருமானத்திலிருந்து தனியாகப் பதிவு செய்யுங்கள். பொதுவான விதி: மொத்த வருமானத்திலிருந்து எரிபொருள் மற்றும் வாகன செலவுகளைக் கழித்து மீதியை வருமானமாகக் கருதுங்கள்.",
+    "You deserve a break. Drink water, rest, and avoid riding when exhausted.":
+      "ஓய்வு உங்கள் உரிமை. தண்ணீர் குடியுங்கள், ஓய்வெடுங்கள், சோர்வாக இருக்கும்போது சவாரி செய்ய வேண்டாம்.",
+    "I'm currently working offline, so I can best answer questions about your gig data — earnings (₹{earned} across {jobs} jobs), fare fairness, complaints, safety, and savings. When the AI service is available I can answer any question. Try asking: Was my fare fair?":
+      "நான் இப்போது ஆஃப்லைனில் இருக்கிறேன், எனவே உங்கள் கிக் தரவு பற்றி சிறப்பாக பதிலளிக்க முடியும் — வருமானம் (₹{earned}, {jobs} வேலைகள்), கட்டண நியாயம், புகார்கள், பாதுகாப்பு மற்றும் சேமிப்பு. AI கிடைக்கும்போது எந்த கேள்விக்கும் பதிலளிக்க முடியும். கேளுங்கள்: என் கட்டணம் சரியாக இருந்ததா?",
   },
   te: {
     "Set up your work plan first": "ముందుగా మీ పని ప్రణాళికను సెటప్ చేయండి",
@@ -389,6 +465,28 @@ const extraTranslations: Partial<Record<Language, Record<string, string>>> = {
     "Gemini API key (optional fallback)": "Gemini API కీ (ఐచ్ఛిక బ్యాకప్)",
     "AI connected": "AI కనెక్ట్ అయ్యింది",
     "Change API key": "API కీని మార్చండి",
+    "Hello! I'm GigShield. Ask me anything about your gig work — fares, earnings, safety, complaints — or any other question, and I'll do my best to help.":
+      "నమస్కారం! నేను GigShield. మీ గిగ్ పని గురించి ఏదైనా అడగండి — చెల్లింపు, ఆదాయం, భద్రత, ఫిర్యాదులు — లేదా మరేదైనా ప్రశ్న, నేను సహాయం చేస్తాను.",
+    "You have earned ₹{earned} across {jobs} jobs and worked {hours} hours.":
+      "మీరు {jobs} పనులలో ₹{earned} సంపాదించారు మరియు {hours} గంటలు పని చేశారు.",
+    "{flagged} job(s) may need a payout review. GigShield compares payout with a transparent distance-and-time estimate; it is not legal proof.":
+      "{flagged} పని(లు) చెల్లింపు సమీక్ష అవసరం కావచ్చు. GigShield చెల్లింపును పారదర్శక దూరం-మరియు-సమయ అంచనాతో పోలుస్తుంది; ఇది చట్టబద్ధమైన రుజువు కాదు.",
+    "Keep screenshots, trip IDs, timestamps, and payout records. Ask the platform for a written payout review.":
+      "స్క్రీన్‌షాట్లు, ట్రిప్ ఐడీలు, టైమ్‌స్టాంపులు మరియు చెల్లింపు రికార్డులు ఉంచుకోండి. ప్లాట్‌ఫారమ్‌ను వ్రాతపూర్వక చెల్లింపు సమీక్ష అడగండి.",
+    "In India, gig earnings are taxable income. Track every payout, maintain expense records (fuel, maintenance, mobile data), and consult a chartered accountant for the right deductions. This is general guidance, not legal advice.":
+      "భారతదేశంలో గిగ్ ఆదాయం పన్ను విధించదగినది. ప్రతి చెల్లింపును నమోదు చేయండి, ఖర్చు రికార్డులు (ఇంధనం, నిర్వహణ, మొబైల్ డేటా) ఉంచండి, సరైన మినహాయింపుల కోసం చార్టర్డ్ అకౌంటెంట్ సలహా తీసుకోండి. ఇది సాధారణ మార్గదర్శనం, చట్టపరమైన సలహా కాదు.",
+    "Across {jobs} jobs you have earned ₹{earned}. Try setting aside 10–20% of every fare and set a daily savings target on your dashboard.":
+      "మీరు {jobs} పనులలో ₹{earned} సంపాదించారు. ప్రతి చెల్లింపులో 10–20% కేటాయించడానికి ప్రయత్నించండి మరియు డాష్‌బోర్డ్‌లో రోజువారీ పొదుపు లక్ష్యాన్ని సెట్ చేయండి.",
+    "For safety: share your live location with a trusted contact, avoid remote pickups at night, and use the Safety check button on the dashboard to prepare an alert.":
+      "భద్రత కోసం: నమ్మకమైన వ్యక్తితో మీ లైవ్ లొకేషన్ పంచుకోండి, రాత్రి సమయంలో దూరపు పికప్‌లను నివారించండి, అలర్ట్ సిద్ధం చేయడానికి డాష్‌బోర్డ్‌లో Safety check బటన్ ఉపయోగించండి.",
+    "Night shifts usually pay better but have higher risk. Review each night job's per-km rate on your dashboard to see whether the extra pay was fair.":
+      "రాత్రి షిఫ్టులు సాధారణంగా ఎక్కువ చెల్లిస్తాయి కానీ ఎక్కువ ప్రమాదం. అదనపు చెల్లింపు న్యాయమో కాదో తెలుసుకోవడానికి ప్రతి రాత్రి పని యొక్క కి.మీ రేటును డాష్‌బోర్డ్‌లో చూడండి.",
+    "Track fuel and maintenance separately from earnings. A common rule is to subtract fuel and vehicle costs from gross earnings before treating the rest as income.":
+      "ఇంధనం మరియు నిర్వహణను ఆదాయం నుండి విడిగా ట్రాక్ చేయండి. సాధారణ నియమం: మొత్తం ఆదాయం నుండి ఇంధనం మరియు వాహన ఖర్చులను తీసివేసి, మిగిలినదాన్ని ఆదాయంగా పరిగణించండి.",
+    "You deserve a break. Drink water, rest, and avoid riding when exhausted.":
+      "విశ్రాంతి మీ హక్కు. నీరు త్రాగండి, విశ్రాంతి తీసుకోండి, అలసటతో ప్రయాణం చేయవద్దు.",
+    "I'm currently working offline, so I can best answer questions about your gig data — earnings (₹{earned} across {jobs} jobs), fare fairness, complaints, safety, and savings. When the AI service is available I can answer any question. Try asking: Was my fare fair?":
+      "నేను ప్రస్తుతం ఆఫ్‌లైన్‌లో ఉన్నాను, కాబట్టి మీ గిగ్ డేటా గురించి ఉత్తమంగా సమాధానం ఇవ్వగలను — ఆదాయం (₹{earned}, {jobs} పనులు), చెల్లింపు న్యాయం, ఫిర్యాదులు, భద్రత మరియు పొదుపు. AI అందుబాటులో ఉన్నప్పుడు ఏ ప్రశ్నకైనా సమాధానం ఇవ్వగలను. అడగండి: నా చెల్లింపు న్యాయంగా ఉందా?",
   },
   mr: {
     "Set up your work plan first": "प्रथम तुमचा कामाचा प्लॅन सेट करा",
@@ -433,6 +531,28 @@ const extraTranslations: Partial<Record<Language, Record<string, string>>> = {
     "Gemini API key (optional fallback)": "Gemini API की (ऐच्छिक बॅकअप)",
     "AI connected": "AI कनेक्ट केले आहे",
     "Change API key": "API की बदला",
+    "Hello! I'm GigShield. Ask me anything about your gig work — fares, earnings, safety, complaints — or any other question, and I'll do my best to help.":
+      "नमस्कार! मी GigShield. तुमच्या गिग कामाबद्दल काहीही विचारा — भाडे, कमाई, सुरक्षा, तक्रारी — किंवा दुसरा कोणताही प्रश्न, मी मदत करेन.",
+    "You have earned ₹{earned} across {jobs} jobs and worked {hours} hours.":
+      "तुम्ही {jobs} कामांमध्ये ₹{earned} कमावले आणि {hours} तास काम केले.",
+    "{flagged} job(s) may need a payout review. GigShield compares payout with a transparent distance-and-time estimate; it is not legal proof.":
+      "{flagged} कामांमध्ये भाडे पुनरावलोकनाची गरज असू शकते. GigShield भाड्याची तुलना पारदर्शक अंतर-आणि-वेळ अंदाजाशी करतो; हे कायदेशीर पुरावा नाही.",
+    "Keep screenshots, trip IDs, timestamps, and payout records. Ask the platform for a written payout review.":
+      "स्क्रीनशॉट, ट्रिप आयडी, वेळ-मुद्रा आणि भाडे नोंदी ठेवा. प्लॅटफॉर्मकडे लेखी भाडे पुनरावलोकन मागा.",
+    "In India, gig earnings are taxable income. Track every payout, maintain expense records (fuel, maintenance, mobile data), and consult a chartered accountant for the right deductions. This is general guidance, not legal advice.":
+      "भारतात गिग कमाई करपात्र उत्पन्न आहे. प्रत्येक पेमेंटची नोंद ठेवा, खर्चाच्या नोंदी (इंधन, देखभाल, मोबाइल डेटा) ठेवा, योग्य वजावटीसाठी चार्टर्ड अकाउंटंटचा सल्ला घ्या. हे सामान्य मार्गदर्शन आहे, कायदेशीर सल्ला नाही.",
+    "Across {jobs} jobs you have earned ₹{earned}. Try setting aside 10–20% of every fare and set a daily savings target on your dashboard.":
+      "तुम्ही {jobs} कामांमध्ये ₹{earned} कमावले. प्रत्येक भाड्याच्या पैकी 10–20% बाजूला ठेवा आणि डॅशबोर्डवर दैनिक बचत लक्ष्य सेट करा.",
+    "For safety: share your live location with a trusted contact, avoid remote pickups at night, and use the Safety check button on the dashboard to prepare an alert.":
+      "सुरक्षेसाठी: विश्वासू व्यक्तीसोबत तुमचे लाइव्ह लोकेशन शेअर करा, रात्री दूरचे पिकअप टाळा, आणि अलर्ट तयार करण्यासाठी डॅशबोर्डवरील Safety check बटण वापरा.",
+    "Night shifts usually pay better but have higher risk. Review each night job's per-km rate on your dashboard to see whether the extra pay was fair.":
+      "रात्रीच्या शिफ्ट्स सहसा जास्त भाडे देतात पण जोखीम जास्त असते. अतिरिक्त भाडे योग्य होते का हे पाहण्यासाठी प्रत्येक रात्रीच्या कामाचा प्रति-किमी दर डॅशबोर्डवर तपासा.",
+    "Track fuel and maintenance separately from earnings. A common rule is to subtract fuel and vehicle costs from gross earnings before treating the rest as income.":
+      "इंधन आणि देखभाल कमाईपासून वेगळी नोंद करा. सामान्य नियम: एकूण कमाईतून इंधन आणि वाहन खर्च वजा करा, उरलेले उत्पन्न समजा.",
+    "You deserve a break. Drink water, rest, and avoid riding when exhausted.":
+      "तुम्ही विश्रांतीसाठी पात्र आहात. पाणी प्या, विश्रांती घ्या, थकले असताना सवारी करू नका.",
+    "I'm currently working offline, so I can best answer questions about your gig data — earnings (₹{earned} across {jobs} jobs), fare fairness, complaints, safety, and savings. When the AI service is available I can answer any question. Try asking: Was my fare fair?":
+      "मी सध्या ऑफलाइन आहे, त्यामुळे तुमच्या गिग डेटाबद्दल उत्तम उत्तर देऊ शकतो — कमाई (₹{earned}, {jobs} कामे), भाडे न्याय, तक्रारी, सुरक्षा आणि बचत. AI सेवा उपलब्ध झाल्यावर मी कोणत्याही प्रश्नाचे उत्तर देऊ शकतो. विचारा: माझे भाडे योग्य होते का?",
   },
   bn: {
     "Set up your work plan first": "প্রথমে আপনার কাজের পরিকল্পনা সেট করুন",
@@ -476,6 +596,28 @@ const extraTranslations: Partial<Record<Language, Record<string, string>>> = {
       "AI উত্তরের জন্য আপনার OpenRouter API কী যোগ করুন।",
     "Get a free API key at OpenRouter": "OpenRouter-এ বিনামূল্যে API কী পান",
     "Gemini API key (optional fallback)": "Gemini API কী (ঐচ্ছিক ব্যাকআপ)",
+    "Hello! I'm GigShield. Ask me anything about your gig work — fares, earnings, safety, complaints — or any other question, and I'll do my best to help.":
+      "নমস্কার! আমি GigShield. আপনার গিগ কাজ নিয়ে যেকোনো প্রশ্ন করুন — ভাড়া, আয়, নিরাপত্তা, অভিযোগ — বা অন্য যেকোনো প্রশ্ন, আমি সাহায্য করব।",
+    "You have earned ₹{earned} across {jobs} jobs and worked {hours} hours.":
+      "আপনি {jobs} টি কাজে ₹{earned} উপার্জন করেছেন এবং {hours} ঘণ্টা কাজ করেছেন।",
+    "{flagged} job(s) may need a payout review. GigShield compares payout with a transparent distance-and-time estimate; it is not legal proof.":
+      "{flagged} টি কাজে ভাড়া পর্যালোচনার প্রয়োজন হতে পারে। GigShield ভাড়া স্বচ্ছ দূরত্ব-ও-সময় অনুমানের সাথে তুলনা করে; এটি আইনি প্রমাণ নয়।",
+    "Keep screenshots, trip IDs, timestamps, and payout records. Ask the platform for a written payout review.":
+      "স্ক্রিনশট, ট্রিপ আইডি, টাইমস্ট্যাম্প এবং ভাড়ার রেকর্ড রাখুন। প্ল্যাটফর্মের কাছে লিখিত ভাড়া পর্যালোচনা চান।",
+    "In India, gig earnings are taxable income. Track every payout, maintain expense records (fuel, maintenance, mobile data), and consult a chartered accountant for the right deductions. This is general guidance, not legal advice.":
+      "ভারতে গিগ আয় করযোগ্য। প্রতিটি পেমেন্ট নথিভুক্ত করুন, খরচের রেকর্ড (জ্বালানি, রক্ষণাবেক্ষণ, মোবাইল ডেটা) রাখুন, সঠিক ছাড়ের জন্য চার্টার্ড অ্যাকাউন্ট্যান্টের পরামর্শ নিন। এটি সাধারণ নির্দেশনা, আইনি পরামর্শ নয়।",
+    "Across {jobs} jobs you have earned ₹{earned}. Try setting aside 10–20% of every fare and set a daily savings target on your dashboard.":
+      "আপনি {jobs} টি কাজে ₹{earned} উপার্জন করেছেন। প্রতিটি ভাড়ার ১০–২০% আলাদা রাখার চেষ্টা করুন এবং ড্যাশবোর্ডে দৈনিক সঞ্চয় লক্ষ্য নির্ধারণ করুন।",
+    "For safety: share your live location with a trusted contact, avoid remote pickups at night, and use the Safety check button on the dashboard to prepare an alert.":
+      "নিরাপত্তার জন্য: বিশ্বস্ত ব্যক্তির সাথে আপনার লাইভ অবস্থান শেয়ার করুন, রাতে দূরের পিকআপ এড়িয়ে চলুন এবং অ্যালার্ট প্রস্তুত করতে ড্যাশবোর্ডের Safety check বাটন ব্যবহার করুন।",
+    "Night shifts usually pay better but have higher risk. Review each night job's per-km rate on your dashboard to see whether the extra pay was fair.":
+      "রাতের শিফট সাধারণত বেশি ভাড়া দেয় কিন্তু ঝুঁকি বেশি। প্রতিটি রাতের কাজের প্রতি-কিমি হার ড্যাশবোর্ডে দেখুন, অতিরিক্ত ভাড়া ন্যায্য ছিল কিনা।",
+    "Track fuel and maintenance separately from earnings. A common rule is to subtract fuel and vehicle costs from gross earnings before treating the rest as income.":
+      "জ্বালানি ও রক্ষণাবেক্ষণ খরচ আয় থেকে আলাদা রাখুন। সাধারণ নিয়ম: মোট আয় থেকে জ্বালানি ও গাড়ির খরচ বাদ দিয়ে বাকিটা আয় হিসেবে ধরুন।",
+    "You deserve a break. Drink water, rest, and avoid riding when exhausted.":
+      "বিশ্রাম আপনার প্রাপ্য। জল খান, বিশ্রাম নিন, ক্লান্ত অবস্থায় রাইড করবেন না।",
+    "I'm currently working offline, so I can best answer questions about your gig data — earnings (₹{earned} across {jobs} jobs), fare fairness, complaints, safety, and savings. When the AI service is available I can answer any question. Try asking: Was my fare fair?":
+      "আমি এখন অফলাইনে আছি, তাই আপনার গিগ ডেটা নিয়ে সবচেয়ে ভালো উত্তর দিতে পারি — আয় (₹{earned}, {jobs} টি কাজ), ভাড়ার ন্যায্যতা, অভিযোগ, নিরাপত্তা এবং সঞ্চয়। AI পরিষেবা চালু হলে আমি যেকোনো প্রশ্নের উত্তর দিতে পারি। জিজ্ঞাসা করুন: আমার ভাড়া কি ন্যায্য ছিল?",
   },
 };
 
@@ -676,14 +818,15 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 }
 
+export function translateText(language: Language, text: string) {
+  return extraTranslations[language]?.[text] ?? dashboardTranslations[language][text] ?? text;
+}
+
 export function useI18n() {
   const value = useContext(LanguageContext);
   if (!value) throw new Error("useI18n must be used inside LanguageProvider");
   return {
     ...value,
-    translate: (text: string) =>
-      extraTranslations[value.language]?.[text] ??
-      dashboardTranslations[value.language][text] ??
-      text,
+    translate: (text: string) => translateText(value.language, text),
   };
 }

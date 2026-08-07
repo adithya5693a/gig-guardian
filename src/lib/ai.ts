@@ -1,4 +1,5 @@
 import { fairness, type Job } from "./jobs-store";
+import { translateText, type Language } from "./i18n";
 
 export const GIGSHIELD_AI_SYSTEM_PROMPT =
   "You are GigShield, a helpful assistant for Indian gig workers. Always respond using Indian Rupees (₹) and kilometers (km). Never use dollars ($) or miles under any circumstance. Use simple, practical language and never present an estimate as legal proof.";
@@ -300,33 +301,64 @@ export async function askWithFallbackChat(
   }
 }
 
-export function localAssistant(question: string, jobs: Job[]) {
+export function localAssistant(question: string, jobs: Job[], language: Language = "en") {
+  const t = (key: string) => translateText(language, key);
+  const fill = (template: string) =>
+    template
+      .replaceAll("{earned}", earnings.toFixed(0))
+      .replaceAll("{jobs}", String(jobs.length))
+      .replaceAll("{hours}", hours.toFixed(1))
+      .replaceAll("{flagged}", String(flagged));
   const q = question.toLowerCase();
   const earnings = jobs.reduce((sum, job) => sum + job.fare, 0);
   const hours = jobs.reduce((sum, job) => sum + job.minutes, 0) / 60;
   const flagged = jobs.filter((job) => fairness(job).flagged).length;
   const greetings = ["hello", "hi ", "hey", "namaste", "good morning", "good evening"];
   if (greetings.some((g) => q.includes(g)))
-    return "Hello! I'm GigShield. Ask me anything about your gig work — fares, earnings, safety, complaints — or any other question, and I'll do my best to help.";
+    return t(
+      "Hello! I'm GigShield. Ask me anything about your gig work — fares, earnings, safety, complaints — or any other question, and I'll do my best to help.",
+    );
   if (q.includes("earn") || q.includes("hour"))
-    return `You have earned ₹${earnings.toFixed(0)} across ${jobs.length} jobs and worked ${hours.toFixed(1)} hours.`;
+    return fill(t("You have earned ₹{earned} across {jobs} jobs and worked {hours} hours."));
   if (q.includes("fair") || q.includes("underpay"))
-    return `${flagged} job(s) may need a payout review. GigShield compares payout with a transparent distance-and-time estimate; it is not legal proof.`;
+    return fill(
+      t(
+        "{flagged} job(s) may need a payout review. GigShield compares payout with a transparent distance-and-time estimate; it is not legal proof.",
+      ),
+    );
   if (q.includes("complaint") || q.includes("right"))
-    return "Keep screenshots, trip IDs, timestamps, and payout records. Ask the platform for a written payout review.";
+    return t(
+      "Keep screenshots, trip IDs, timestamps, and payout records. Ask the platform for a written payout review.",
+    );
   if (q.includes("tax"))
-    return "In India, gig earnings are taxable income. Track every payout, maintain expense records (fuel, maintenance, mobile data), and consult a chartered accountant for the right deductions. This is general guidance, not legal advice.";
+    return t(
+      "In India, gig earnings are taxable income. Track every payout, maintain expense records (fuel, maintenance, mobile data), and consult a chartered accountant for the right deductions. This is general guidance, not legal advice.",
+    );
   if (q.includes("save") || q.includes("saving"))
-    return `Across ${jobs.length} jobs you have earned ₹${earnings.toFixed(0)}. Try setting aside 10–20% of every fare and set a daily savings target on your dashboard.`;
+    return fill(
+      t(
+        "Across {jobs} jobs you have earned ₹{earned}. Try setting aside 10–20% of every fare and set a daily savings target on your dashboard.",
+      ),
+    );
   if (q.includes("safe") || q.includes("danger"))
-    return "For safety: share your live location with a trusted contact, avoid remote pickups at night, and use the Safety check button on the dashboard to prepare an alert.";
+    return t(
+      "For safety: share your live location with a trusted contact, avoid remote pickups at night, and use the Safety check button on the dashboard to prepare an alert.",
+    );
   if (q.includes("night"))
-    return "Night shifts usually pay better but have higher risk. Review each night job's per-km rate on your dashboard to see whether the extra pay was fair.";
+    return t(
+      "Night shifts usually pay better but have higher risk. Review each night job's per-km rate on your dashboard to see whether the extra pay was fair.",
+    );
   if (q.includes("fuel") || q.includes("petrol") || q.includes("diesel") || q.includes("expense"))
-    return "Track fuel and maintenance separately from earnings. A common rule is to subtract fuel and vehicle costs from gross earnings before treating the rest as income.";
+    return t(
+      "Track fuel and maintenance separately from earnings. A common rule is to subtract fuel and vehicle costs from gross earnings before treating the rest as income.",
+    );
   if (q.includes("break") || q.includes("tired"))
-    return "You deserve a break. Drink water, rest, and avoid riding when exhausted.";
-  return `I'm currently working offline, so I can best answer questions about your gig data — earnings (₹${earnings.toFixed(0)} across ${jobs.length} jobs), fare fairness, complaints, safety, and savings. When the AI service is available I can answer any question. Try asking: Was my fare fair?`;
+    return t("You deserve a break. Drink water, rest, and avoid riding when exhausted.");
+  return fill(
+    t(
+      "I'm currently working offline, so I can best answer questions about your gig data — earnings (₹{earned} across {jobs} jobs), fare fairness, complaints, safety, and savings. When the AI service is available I can answer any question. Try asking: Was my fare fair?",
+    ),
+  );
 }
 
 export function jobsContext(jobs: Job[]) {
