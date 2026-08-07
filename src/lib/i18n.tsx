@@ -682,6 +682,10 @@ const dashboardTranslations: Record<Language, Record<string, string>> = {
     "GPS location": "GPS लोकेशन",
     "Approximate network location": "अनुमानित नेटवर्क लोकेशन",
     "Share alert": "अलर्ट साझा करें",
+    "IP-based location is approximate.": "IP-आधारित लोकेशन अनुमानित है।",
+    "Enable location permission (HTTPS) for your exact GPS position.":
+      "अपनी सटीक GPS लोकेशन के लिए लोकेशन अनुमति (HTTPS) सक्षम करें।",
+    "Try again": "फिर से कोशिश करें",
   },
   kn: {
     "Emergency contact number": "ತುರ್ತು ಸಂಪರ್ಕ ಸಂಖ್ಯೆ",
@@ -701,6 +705,10 @@ const dashboardTranslations: Record<Language, Record<string, string>> = {
     "GPS location": "GPS ಸ್ಥಳ",
     "Approximate network location": "ಅಂದಾಜು ನೆಟ್ವರ್ಕ್ ಸ್ಥಳ",
     "Share alert": "ಎಚ್ಚರಿಕೆ ಹಂಚಿಕೊಳ್ಳಿ",
+    "IP-based location is approximate.": "IP-ಆಧಾರಿತ ಸ್ಥಳವು ಅಂದಾಜು ಆಗಿದೆ.",
+    "Enable location permission (HTTPS) for your exact GPS position.":
+      "ನಿಮ್ಮ ನಿಖರ GPS ಸ್ಥಳಕ್ಕಾಗಿ ಸ್ಥಳ ಅನುಮತಿಯನ್ನು (HTTPS) ಸಕ್ರಿಯಗೊಳಿಸಿ.",
+    "Try again": "ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ",
   },
   ta: {
     "Your earnings": "உங்கள் வருமானம்",
@@ -761,6 +769,10 @@ const dashboardTranslations: Record<Language, Record<string, string>> = {
     "GPS location": "GPS இருப்பிடம்",
     "Approximate network location": "தோராயமான நெட்வொர்க் இருப்பிடம்",
     "Share alert": "எச்சரிக்கையைப் பகிர்",
+    "IP-based location is approximate.": "IP அடிப்படையிலான இருப்பிடம் தோராயமானது.",
+    "Enable location permission (HTTPS) for your exact GPS position.":
+      "உங்கள் சரியான GPS இருப்பிடத்திற்கு இருப்பிட அனுமதியை (HTTPS) இயக்கவும்.",
+    "Try again": "மீண்டும் முயற்சி",
   },
   te: {
     "Your earnings": "మీ ఆదాయం",
@@ -821,6 +833,10 @@ const dashboardTranslations: Record<Language, Record<string, string>> = {
     "GPS location": "GPS లొకేషన్",
     "Approximate network location": "సుమారు నెట్‌వర్క్ లొకేషన్",
     "Share alert": "హెచ్చరికను భాగస్వామ్యం చేయండి",
+    "IP-based location is approximate.": "IP ఆధారిత లొకేషన్ సుమారుగా ఉంటుంది.",
+    "Enable location permission (HTTPS) for your exact GPS position.":
+      "మీ ఖచ్చితమైన GPS లొకేషన్ కోసం లొకేషన్ అనుమతిని (HTTPS) ప్రారంభించండి.",
+    "Try again": "మళ్లీ ప్రయత్నించండి",
   },
   mr: {
     "Your earnings": "तुमची कमाई",
@@ -881,6 +897,10 @@ const dashboardTranslations: Record<Language, Record<string, string>> = {
     "GPS location": "GPS लोकेशन",
     "Approximate network location": "अंदाजे नेटवर्क लोकेशन",
     "Share alert": "अलर्ट शेअर करा",
+    "IP-based location is approximate.": "IP-आधारित लोकेशन अंदाजे आहे.",
+    "Enable location permission (HTTPS) for your exact GPS position.":
+      "तुमच्या अचूक GPS लोकेशनसाठी लोकेशन परवानगी (HTTPS) सक्षम करा.",
+    "Try again": "पुन्हा प्रयत्न करा",
   },
   bn: {
     "Emergency contact number": "জরুরি যোগাযোগ নম্বর",
@@ -900,6 +920,10 @@ const dashboardTranslations: Record<Language, Record<string, string>> = {
     "GPS location": "GPS অবস্থান",
     "Approximate network location": "আনুমানিক নেটওয়ার্ক অবস্থান",
     "Share alert": "সতর্কতা শেয়ার করুন",
+    "IP-based location is approximate.": "IP-ভিত্তিক অবস্থান আনুমানিক।",
+    "Enable location permission (HTTPS) for your exact GPS position.":
+      "আপনার সঠিক GPS অবস্থানের জন্য অবস্থান অনুমতি (HTTPS) সক্রিয় করুন।",
+    "Try again": "আবার চেষ্টা করুন",
   },
 };
 const LanguageContext = createContext<{

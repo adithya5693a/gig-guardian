@@ -308,43 +308,59 @@ function SafetyAndSavings({ jobs }: { jobs: Job[] }) {
   const [prepared, setPrepared] = useState<{
     message: string;
     locationIncluded: boolean;
-    source: string;
+    isGps: boolean;
+    accuracy?: number;
   } | null>(null);
 
   const digits = trustedNumber.replace(/\D/g, "");
   const waNumber = digits.length === 10 ? `91${digits}` : digits;
   const hasContact = digits.length >= 10;
 
-  // 1) GPS when the browser allows it (HTTPS/localhost), 2) IP-based location otherwise
-  async function getPosition(): Promise<{ lat: number; lng: number; source: string } | null> {
-    const gps = await new Promise<{ lat: number; lng: number } | null>((resolve) => {
-      if (!("geolocation" in navigator)) {
-        resolve(null);
-        return;
-      }
-      let done = false;
-      const finish = (result: { lat: number; lng: number } | null) => {
-        if (done) return;
-        done = true;
-        resolve(result);
-      };
-      window.setTimeout(() => finish(null), 6000);
-      navigator.geolocation.getCurrentPosition(
-        (position) => finish({ lat: position.coords.latitude, lng: position.coords.longitude }),
-        () => finish(null),
-        { enableHighAccuracy: true, maximumAge: 15_000, timeout: 6000 },
-      );
-    });
-    if (gps) return { ...gps, source: translate("GPS location") };
+  // 1) Device GPS (works on HTTPS/localhost, one retry on timeout),
+  // 2) IP-based location as a last-resort approximation.
+  async function getPosition(): Promise<{
+    lat: number;
+    lng: number;
+    source: "gps" | "ip";
+    accuracy?: number;
+  } | null> {
+    const gps = await new Promise<{ lat: number; lng: number; accuracy?: number } | null>(
+      (resolve) => {
+        if (!("geolocation" in navigator)) {
+          resolve(null);
+          return;
+        }
+        let done = false;
+        const finish = (result: { lat: number; lng: number; accuracy?: number } | null) => {
+          if (done) return;
+          done = true;
+          resolve(result);
+        };
+        const attempt = () => {
+          navigator.geolocation.getCurrentPosition(
+            (position) =>
+              finish({
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+                accuracy: position.coords.accuracy,
+              }),
+            (error) => {
+              if (error.code === error.TIMEOUT && !done) attempt();
+              else finish(null);
+            },
+            { enableHighAccuracy: true, maximumAge: 0, timeout: 15_000 },
+          );
+        };
+        window.setTimeout(() => finish(null), 25_000);
+        attempt();
+      },
+    );
+    if (gps) return { ...gps, source: "gps" };
     try {
       const response = await fetch("https://ipapi.co/json/");
       const data = await response.json();
       if (typeof data.latitude === "number" && typeof data.longitude === "number") {
-        return {
-          lat: data.latitude,
-          lng: data.longitude,
-          source: translate("Approximate network location"),
-        };
+        return { lat: data.latitude, lng: data.longitude, source: "ip" };
       }
     } catch {
       // location unavailable — the message is still sent without it below
@@ -362,8 +378,13 @@ function SafetyAndSavings({ jobs }: { jobs: Job[] }) {
     const link = position
       ? `https://maps.google.com/?q=${position.lat.toFixed(6)},${position.lng.toFixed(6)}`
       : "";
+    const sourceLabel = position
+      ? position.source === "gps"
+        ? `${translate("GPS location")}${position.accuracy ? ` (±${Math.round(position.accuracy)} m)` : ""}`
+        : translate("Approximate network location")
+      : "";
     let message = position
-      ? `${base} ${translate("My live location")} (${position.source}): ${link}`
+      ? `${base} ${translate("My live location")} (${sourceLabel}): ${link}`
       : base;
 
     // If an OpenRouter key is configured, ask the AI to rewrite the alert in
@@ -382,7 +403,12 @@ function SafetyAndSavings({ jobs }: { jobs: Job[] }) {
       }
     }
 
-    setPrepared({ message, locationIncluded, source: position?.source ?? "" });
+    setPrepared({
+      message,
+      locationIncluded,
+      isGps: position?.source === "gps",
+      accuracy: position?.accuracy,
+    });
     window.open(
       `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`,
       "_blank",
@@ -478,12 +504,23 @@ function SafetyAndSavings({ jobs }: { jobs: Job[] }) {
             <b>{translate("Emergency message ready")}</b>
             <p className="mt-1 whitespace-pre-line">{prepared.message}</p>
             {prepared.locationIncluded ? (
-              <p className="mt-1 text-xs font-bold text-success">✓ {prepared.source}</p>
+              <p className="mt-1 text-xs font-bold text-success">
+                ✓{" "}
+                {prepared.isGps
+                  ? `${translate("GPS location")}${prepared.accuracy ? ` (±${Math.round(prepared.accuracy)} m)` : ""}`
+                  : translate("Approximate network location")}
+              </p>
             ) : (
               <p className="mt-1 text-xs text-muted-foreground">
                 {translate("Location unavailable — message sent without it")}
               </p>
             )}
+            {prepared.locationIncluded && !prepared.isGps ? (
+              <p className="mt-2 rounded-lg bg-amber-500/10 p-2 text-xs text-amber-600">
+                {translate("IP-based location is approximate.")}{" "}
+                {translate("Enable location permission (HTTPS) for your exact GPS position.")}
+              </p>
+            ) : null}
             <div className="mt-3 flex flex-wrap gap-2">
               <a
                 href={`https://wa.me/${waNumber}?text=${encodeURIComponent(prepared.message)}`}
@@ -513,6 +550,14 @@ function SafetyAndSavings({ jobs }: { jobs: Job[] }) {
               >
                 {translate("Copy message")}
               </button>
+              {!prepared.isGps ? (
+                <button
+                  onClick={() => void sendEmergency()}
+                  className="rounded-lg border border-destructive/40 px-3 py-1.5 text-xs font-bold text-destructive"
+                >
+                  {translate("Try again")}
+                </button>
+              ) : null}
             </div>
           </div>
         ) : null}
