@@ -114,6 +114,36 @@ export function isFair(job: Job) {
   return !fairness(job).flagged;
 }
 
+// "Rule of 10": an offer is worth accepting only if it is within 10% of the
+// estimated fair payout for the trip. Anything below that threshold should be
+// rejected or countered with at least the fair estimate.
+export function offerVerdict(
+  offer: Pick<Job, "fare" | "distance"> & { vehicleType?: VehicleType; platform?: Platform },
+  observations: Job[] = [],
+) {
+  const fair = fairness(offer, observations);
+  const offered = Number(offer.fare) || 0;
+  const threshold = Math.round(fair.expected * 0.9 * 100) / 100;
+  const level =
+    offered <= 0 || fair.expected <= 0
+      ? ("pending" as const)
+      : offered >= fair.expected
+        ? ("accept" as const)
+        : offered >= threshold
+          ? ("consider" as const)
+          : ("reject" as const);
+  return {
+    level,
+    offered,
+    expected: fair.expected,
+    ruleOfTenFloor: threshold,
+    benchmark: fair.benchmark,
+    ratePerKm: fair.ratePerKm,
+    benchmarkSource: fair.benchmarkSource,
+    communitySampleSize: fair.communitySampleSize,
+  };
+}
+
 type JobsContextValue = {
   jobs: Job[];
   jobsToLog: number;
