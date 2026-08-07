@@ -125,9 +125,15 @@ export function parseOcrText(input: string): OcrValues {
   const structuredLines = cleanOcrLines(input);
   const timeDistancePairs = extractTimeDistancePairs(structuredLines);
   // Clean up and normalize whitespace and currency symbols
-  const text = input
-    .replace(/[₹﹩＄]/g, "₹")
-    .replace(/\b(?:rs\.?|inr|रु\.?)\s*/gi, "₹")
+  let text = input.replace(/[₹﹩＄]/g, "₹").replace(/\b(?:rs\.?|inr|रु\.?)\s*/gi, "₹");
+
+  // Tesseract often misreads ₹ as X, x, *, ?, K, etc. right before a number.
+  // E.g., "X29 (Cash)" -> "₹29 (Cash)", "x 150" -> "₹150"
+  text = text
+    .replace(
+      /(?:^|\s)(?:[Xx*K?¤§]|\(?\s*\)\s*)\s*(\d+(?:\.\d+)?)\s*(\((?:cash|online|wallet|upi|paytm|card)\))/gi,
+      " ₹$1 $2",
+    )
     .replace(/\s+/g, " ")
     .trim();
 
@@ -147,9 +153,21 @@ export function parseOcrText(input: string): OcrValues {
 
   // Fallback fare match if explicit label wasn't found
   if (!fare) {
-    const currencyCandidates = [...text.matchAll(/₹\s*([0-9][0-9,]*(?:\.[0-9]{1,2})?)/gi)]
+    const misreadCandidates = [
+      ...text.matchAll(
+        /(?:^|\s)[Xx*K?¤§]\s*([0-9][0-9,]*(?:\.[0-9]{1,2})?)(?!\s*(?:km|min|hour))/gi,
+      ),
+    ]
       .map((match) => numberValue(match[1]))
       .filter((value): value is number => value !== undefined && value <= 100000);
+
+    const currencyCandidates = [
+      ...[...text.matchAll(/₹\s*([0-9][0-9,]*(?:\.[0-9]{1,2})?)/gi)].map((match) =>
+        numberValue(match[1]),
+      ),
+      ...misreadCandidates,
+    ].filter((value): value is number => value !== undefined && value <= 100000);
+
     if (currencyCandidates.length) fare = Math.max(...currencyCandidates);
   }
 
