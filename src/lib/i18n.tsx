@@ -679,6 +679,9 @@ const dashboardTranslations: Record<Language, Record<string, string>> = {
     "Open WhatsApp": "WhatsApp खोलें",
     "Send SMS": "SMS भेजें",
     "Copy message": "संदेश कॉपी करें",
+    "GPS location": "GPS लोकेशन",
+    "Approximate network location": "अनुमानित नेटवर्क लोकेशन",
+    "Share alert": "अलर्ट साझा करें",
   },
   kn: {
     "Emergency contact number": "ತುರ್ತು ಸಂಪರ್ಕ ಸಂಖ್ಯೆ",
@@ -695,6 +698,9 @@ const dashboardTranslations: Record<Language, Record<string, string>> = {
     "Open WhatsApp": "WhatsApp ತೆರೆಯಿರಿ",
     "Send SMS": "SMS ಕಳುಹಿಸಿ",
     "Copy message": "ಸಂದೇಶವನ್ನು ನಕಲಿಸಿ",
+    "GPS location": "GPS ಸ್ಥಳ",
+    "Approximate network location": "ಅಂದಾಜು ನೆಟ್ವರ್ಕ್ ಸ್ಥಳ",
+    "Share alert": "ಎಚ್ಚರಿಕೆ ಹಂಚಿಕೊಳ್ಳಿ",
   },
   ta: {
     "Your earnings": "உங்கள் வருமானம்",
@@ -752,6 +758,9 @@ const dashboardTranslations: Record<Language, Record<string, string>> = {
     "Open WhatsApp": "WhatsApp ஐத் திற",
     "Send SMS": "SMS அனுப்பு",
     "Copy message": "செய்தியை நகலெடு",
+    "GPS location": "GPS இருப்பிடம்",
+    "Approximate network location": "தோராயமான நெட்வொர்க் இருப்பிடம்",
+    "Share alert": "எச்சரிக்கையைப் பகிர்",
   },
   te: {
     "Your earnings": "మీ ఆదాయం",
@@ -809,6 +818,9 @@ const dashboardTranslations: Record<Language, Record<string, string>> = {
     "Open WhatsApp": "WhatsApp తెరవండి",
     "Send SMS": "SMS పంపండి",
     "Copy message": "సందేశాన్ని కాపీ చేయండి",
+    "GPS location": "GPS లొకేషన్",
+    "Approximate network location": "సుమారు నెట్‌వర్క్ లొకేషన్",
+    "Share alert": "హెచ్చరికను భాగస్వామ్యం చేయండి",
   },
   mr: {
     "Your earnings": "तुमची कमाई",
@@ -866,6 +878,9 @@ const dashboardTranslations: Record<Language, Record<string, string>> = {
     "Open WhatsApp": "WhatsApp उघडा",
     "Send SMS": "SMS पाठवा",
     "Copy message": "संदेश कॉपी करा",
+    "GPS location": "GPS लोकेशन",
+    "Approximate network location": "अंदाजे नेटवर्क लोकेशन",
+    "Share alert": "अलर्ट शेअर करा",
   },
   bn: {
     "Emergency contact number": "জরুরি যোগাযোগ নম্বর",
@@ -882,6 +897,9 @@ const dashboardTranslations: Record<Language, Record<string, string>> = {
     "Open WhatsApp": "WhatsApp খুলুন",
     "Send SMS": "SMS পাঠান",
     "Copy message": "বার্তা কপি করুন",
+    "GPS location": "GPS অবস্থান",
+    "Approximate network location": "আনুমানিক নেটওয়ার্ক অবস্থান",
+    "Share alert": "সতর্কতা শেয়ার করুন",
   },
 };
 const LanguageContext = createContext<{

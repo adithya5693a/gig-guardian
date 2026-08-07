@@ -14,8 +14,10 @@ import { EarningsChart } from "@/components/EarningsChart";
 import { FairnessRing } from "@/components/FairnessRing";
 import { StatCard } from "@/components/StatCard";
 import {
+  askOpenRouter,
   askWithFallback,
   askWithFallbackDetailed,
+  DEFAULT_OPENROUTER_MODEL,
   GIGSHIELD_AI_SYSTEM_PROMPT,
   jobsContext,
 } from "@/lib/ai";
@@ -27,7 +29,7 @@ import {
   useJobs,
   type Job,
 } from "@/lib/jobs-store";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, languageNames } from "@/lib/i18n";
 
 export const Route = createFileRoute("/")({
   head: () => ({ meta: [{ title: "GigShield — Fair Pay, Safety and Worker Support" }] }),
@@ -290,32 +292,64 @@ function ComplaintSupport({ flagged }: { flagged: Job[] }) {
 }
 
 function SafetyAndSavings({ jobs }: { jobs: Job[] }) {
-  const { savingsGoal, setSavingsGoal, resetSetup, trustedNumber, setTrustedNumber } = useJobs();
-  const { translate } = useI18n();
+  const {
+    savingsGoal,
+    setSavingsGoal,
+    resetSetup,
+    trustedNumber,
+    setTrustedNumber,
+    openRouterApiKey,
+  } = useJobs();
+  const { translate, language } = useI18n();
   const earned = jobs.reduce((s, j) => s + j.fare, 0);
   const hours = jobs.reduce((s, j) => s + j.minutes, 0) / 60;
   const [phoneDraft, setPhoneDraft] = useState(trustedNumber);
   const [locating, setLocating] = useState(false);
-  const [prepared, setPrepared] = useState<{ message: string; locationIncluded: boolean } | null>(
-    null,
-  );
+  const [prepared, setPrepared] = useState<{
+    message: string;
+    locationIncluded: boolean;
+    source: string;
+  } | null>(null);
 
   const digits = trustedNumber.replace(/\D/g, "");
   const waNumber = digits.length === 10 ? `91${digits}` : digits;
   const hasContact = digits.length >= 10;
 
-  function getPosition() {
-    return new Promise<{ lat: number; lng: number } | null>((resolve) => {
+  // 1) GPS when the browser allows it (HTTPS/localhost), 2) IP-based location otherwise
+  async function getPosition(): Promise<{ lat: number; lng: number; source: string } | null> {
+    const gps = await new Promise<{ lat: number; lng: number } | null>((resolve) => {
       if (!("geolocation" in navigator)) {
         resolve(null);
         return;
       }
+      let done = false;
+      const finish = (result: { lat: number; lng: number } | null) => {
+        if (done) return;
+        done = true;
+        resolve(result);
+      };
+      window.setTimeout(() => finish(null), 6000);
       navigator.geolocation.getCurrentPosition(
-        (position) => resolve({ lat: position.coords.latitude, lng: position.coords.longitude }),
-        () => resolve(null),
-        { enableHighAccuracy: true, maximumAge: 15_000, timeout: 10_000 },
+        (position) => finish({ lat: position.coords.latitude, lng: position.coords.longitude }),
+        () => finish(null),
+        { enableHighAccuracy: true, maximumAge: 15_000, timeout: 6000 },
       );
     });
+    if (gps) return { ...gps, source: translate("GPS location") };
+    try {
+      const response = await fetch("https://ipapi.co/json/");
+      const data = await response.json();
+      if (typeof data.latitude === "number" && typeof data.longitude === "number") {
+        return {
+          lat: data.latitude,
+          lng: data.longitude,
+          source: translate("Approximate network location"),
+        };
+      }
+    } catch {
+      // location unavailable — the message is still sent without it below
+    }
+    return null;
   }
 
   async function sendEmergency() {
@@ -325,10 +359,30 @@ function SafetyAndSavings({ jobs }: { jobs: Job[] }) {
     const position = await getPosition();
     const base = translate("I may be unsafe. Please call me and check my live location.");
     const locationIncluded = Boolean(position);
-    const message = position
-      ? `${base} ${translate("My live location")}: https://maps.google.com/?q=${position.lat.toFixed(6)},${position.lng.toFixed(6)}`
+    const link = position
+      ? `https://maps.google.com/?q=${position.lat.toFixed(6)},${position.lng.toFixed(6)}`
+      : "";
+    let message = position
+      ? `${base} ${translate("My live location")} (${position.source}): ${link}`
       : base;
-    setPrepared({ message, locationIncluded });
+
+    // If an OpenRouter key is configured, ask the AI to rewrite the alert in
+    // the selected language, keeping the live-location link in the message.
+    if (openRouterApiKey && position) {
+      try {
+        const composed = await askOpenRouter(
+          openRouterApiKey,
+          DEFAULT_OPENROUTER_MODEL,
+          `Write a short emergency SOS message in ${languageNames[language]} (${language}) for a gig worker who is in danger. Include the live location link first: ${link}, and ask the contact to call the worker and check the location immediately. Reply with only the message text, no quotes.`,
+          "You are a terse safety assistant for Indian gig workers. Never invent locations.",
+        );
+        if (composed && !composed.toLowerCase().includes("openrouter")) message = composed;
+      } catch {
+        // keep the built-in localized message
+      }
+    }
+
+    setPrepared({ message, locationIncluded, source: position?.source ?? "" });
     window.open(
       `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`,
       "_blank",
@@ -423,11 +477,13 @@ function SafetyAndSavings({ jobs }: { jobs: Job[] }) {
           <div className="mt-3 rounded-xl bg-secondary p-3 text-sm">
             <b>{translate("Emergency message ready")}</b>
             <p className="mt-1 whitespace-pre-line">{prepared.message}</p>
-            {!prepared.locationIncluded ? (
+            {prepared.locationIncluded ? (
+              <p className="mt-1 text-xs font-bold text-success">✓ {prepared.source}</p>
+            ) : (
               <p className="mt-1 text-xs text-muted-foreground">
                 {translate("Location unavailable — message sent without it")}
               </p>
-            ) : null}
+            )}
             <div className="mt-3 flex flex-wrap gap-2">
               <a
                 href={`https://wa.me/${waNumber}?text=${encodeURIComponent(prepared.message)}`}
@@ -443,6 +499,14 @@ function SafetyAndSavings({ jobs }: { jobs: Job[] }) {
               >
                 {translate("Send SMS")}
               </a>
+              {typeof navigator !== "undefined" && navigator.share ? (
+                <button
+                  onClick={() => void navigator.share({ text: prepared.message })}
+                  className="rounded-lg border border-border px-3 py-1.5 text-xs font-bold"
+                >
+                  {translate("Share alert")}
+                </button>
+              ) : null}
               <button
                 onClick={() => void navigator.clipboard?.writeText(prepared.message)}
                 className="rounded-lg border border-border px-3 py-1.5 text-xs font-bold"
