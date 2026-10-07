@@ -103,7 +103,6 @@ function LogJob() {
   }
 
   const [ocrSource, setOcrSource] = useState<string | null>(null);
-  const [showOcrSettings, setShowOcrSettings] = useState(false);
 
   async function scanScreenshot(file: File) {
     setOcrBusy(true);
@@ -252,66 +251,7 @@ function LogJob() {
                 </span>
               )}
             </div>
-            <button
-              type="button"
-              onClick={() => setShowOcrSettings(!showOcrSettings)}
-              className="text-xs font-extrabold text-primary hover:underline"
-            >
-              {showOcrSettings ? "Hide Settings" : "Configure AI Keys"}
-            </button>
           </div>
-
-          {showOcrSettings && (
-            <div className="mb-4 space-y-3 rounded-2xl border border-border/80 bg-secondary/30 p-3.5 text-xs">
-              <h3 className="font-extrabold tracking-tight text-foreground">
-                AI OCR Configuration
-              </h3>
-              <p className="text-muted-foreground leading-relaxed">
-                Connect your API keys to extract payouts and ride details with extremely high
-                accuracy. Keys are saved locally on your device.
-              </p>
-              <div className="space-y-3 mt-2">
-                <label className="block">
-                  <span className="font-bold text-muted-foreground">OpenRouter API Key</span>
-                  <input
-                    type="password"
-                    value={openRouterApiKey}
-                    onChange={(e) => setOpenRouterApiKey(e.target.value)}
-                    placeholder="sk-or-..."
-                    className="mt-1 w-full rounded-xl border border-input bg-secondary px-3 py-2 text-xs outline-none focus:border-ring focus:ring-2 focus:ring-ring/30"
-                  />
-                </label>
-                <div className="relative flex py-1 items-center">
-                  <div className="flex-grow border-t border-border/60"></div>
-                  <span className="flex-shrink mx-2 text-[9px] font-bold text-muted-foreground/60 uppercase">
-                    OR
-                  </span>
-                  <div className="flex-grow border-t border-border/60"></div>
-                </div>
-                <label className="block">
-                  <span className="font-bold text-muted-foreground">Gemini API Key</span>
-                  <input
-                    type="password"
-                    value={geminiApiKey}
-                    onChange={(e) => setGeminiApiKey(e.target.value)}
-                    placeholder="AIzaSy..."
-                    className="mt-1 w-full rounded-xl border border-input bg-secondary px-3 py-2 text-xs outline-none focus:border-ring focus:ring-2 focus:ring-ring/30"
-                  />
-                </label>
-                <label className="block">
-                  <span className="font-bold text-muted-foreground">Gemini Model</span>
-                  <select
-                    value={geminiModel}
-                    onChange={(e) => setGeminiModel(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-input bg-secondary px-3 py-2 text-xs outline-none focus:border-ring focus:ring-2 focus:ring-ring/30"
-                  >
-                    <option value="gemini-2.0-flash">gemini-2.0-flash (Recommended)</option>
-                    <option value="gemini-1.5-flash">gemini-1.5-flash</option>
-                  </select>
-                </label>
-              </div>
-            </div>
-          )}
 
           <label className="text-sm font-bold block mb-1">
             {translate("Upload app screenshot")}

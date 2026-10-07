@@ -32,9 +32,6 @@ function Assistant() {
   const [question, setQuestion] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [draftKey, setDraftKey] = useState(openRouterApiKey);
-  const [draftGeminiKey, setDraftGeminiKey] = useState(geminiApiKey);
-  const [showKeySettings, setShowKeySettings] = useState(false);
   const aiConnected = Boolean(openRouterApiKey || geminiApiKey);
 
   async function send(value = question) {
@@ -85,103 +82,14 @@ function Assistant() {
         </button>
       </div>
 
-      {aiConnected ? (
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <p className="flex items-center gap-1.5 text-xs font-bold text-success">
-            <span className="grid h-5 w-5 place-items-center rounded-full bg-success/15 text-[10px]">
-              ✓
-            </span>
-            {translate("AI connected")}
-          </p>
-          <button
-            onClick={() => {
-              setDraftKey(openRouterApiKey);
-              setDraftGeminiKey(geminiApiKey);
-              setShowKeySettings((value) => !value);
-            }}
-            className="rounded-full border border-border px-3 py-1.5 text-xs font-bold hover:bg-secondary"
-          >
-            {translate("Change API key")}
-          </button>
-        </div>
-      ) : null}
-
-      {!aiConnected || showKeySettings ? (
-        <div className="mt-4 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4">
-          <p className="text-sm font-bold">{translate("Connect AI")}</p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {translate("Add your OpenRouter API key to enable AI answers.")}
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <input
-              type="password"
-              value={draftKey}
-              onChange={(event) => setDraftKey(event.target.value)}
-              placeholder="sk-or-…"
-              className="min-w-0 flex-1 rounded-xl border border-input bg-secondary px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring/30"
-            />
-            <button
-              onClick={() => {
-                if (draftKey.trim()) {
-                  setOpenRouterApiKey(draftKey.trim());
-                  setDraftKey("");
-                  setShowKeySettings(false);
-                }
-              }}
-              className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
-            >
-              {translate("Save key")}
-            </button>
-          </div>
-          <p className="mt-2 text-xs text-muted-foreground">
-            <a
-              href="https://openrouter.ai/settings/keys"
-              target="_blank"
-              rel="noreferrer"
-              className="underline"
-            >
-              {translate("Get a free API key at OpenRouter")}
-            </a>
-          </p>
-          <p className="mt-3 text-xs font-bold">
-            {translate("Gemini API key (optional fallback)")}
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {translate("Add your Gemini API key to enable AI answers.")}
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <input
-              type="password"
-              value={draftGeminiKey}
-              onChange={(event) => setDraftGeminiKey(event.target.value)}
-              placeholder="AIza…"
-              className="min-w-0 flex-1 rounded-xl border border-input bg-secondary px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring/30"
-            />
-            <button
-              onClick={() => {
-                if (draftGeminiKey.trim()) {
-                  setGeminiApiKey(draftGeminiKey.trim());
-                  setDraftGeminiKey("");
-                  setShowKeySettings(false);
-                }
-              }}
-              className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
-            >
-              {translate("Save key")}
-            </button>
-          </div>
-          <p className="mt-2 text-xs text-muted-foreground">
-            <a
-              href="https://aistudio.google.com/apikey"
-              target="_blank"
-              rel="noreferrer"
-              className="underline"
-            >
-              {translate("Get a free API key at Google AI Studio")}
-            </a>
-          </p>
-        </div>
-      ) : null}
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <p className="flex items-center gap-1.5 text-xs font-bold text-success">
+          <span className="grid h-5 w-5 place-items-center rounded-full bg-success/15 text-[10px]">
+            ✓
+          </span>
+          {translate("AI connected")}
+        </p>
+      </div>
 
       <div className="mt-5 min-h-80 space-y-3 rounded-3xl border border-border bg-card p-4">
         {messages.length === 0 ? (
